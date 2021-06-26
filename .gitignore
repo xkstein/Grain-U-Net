@@ -2,3 +2,4 @@ GitTools.ipynb
 **/train/**
 __pycache__
 *.hdf5
+**/data/**
