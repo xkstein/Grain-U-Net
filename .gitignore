@@ -3,3 +3,4 @@ GitTools.ipynb
 __pycache__
 *.hdf5
 **/data/**
+.DS_Store
