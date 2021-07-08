@@ -39,9 +39,22 @@ def chi2test(A, B):
             chi2s[indx, indy] = find_chi2(A_id, B_id, offset_x, offset_y)
 
     chi2_min = np.min(chi2s)
+    print(chi2_min)
     [x, y] = np.where(chi2s == chi2_min)
+#    print(chi2s)
+    if (len(x) > 1 or len(y) > 1):
+        x = x[x == min(np.abs(x - offset_n/2))]
+        y = y[y == min(np.abs(y - offset_n/2))]
+
+
+    print(x)
+    print(y)
+    '''
     offset_x = offset_map[0, x]
     offset_y = offset_map[1, y]
+    '''
+    offset_x = [0]
+    offset_y = [0]
 
     while True:
         chi2s = np.zeros((3,3))
@@ -63,37 +76,3 @@ def chi2test(A, B):
         else:
             offset_x += x[0] - 1
             offset_y += y[0] - 1
-
-'''
-def chi2test(A, B):
-    A_id = np.where(A == 1)
-    B_id = np.where(B == 1)
-
-    offset_range = [50, -50, 50, -50]
-    offset_n = 10
-
-    offset_map = np.zeros((2, offset_n))
-    offset_map[0] = np.linspace(offset_range[1], offset_range[0], offset_n)
-    offset_map[1] = np.linspace(offset_range[3], offset_range[2], offset_n)
-
-    chi2s = np.zeros((offset_n, offset_n))
-    A_id_offset = np.zeros(A_id.shape)
-    for indx, offset_x in enumerate(offset_map[0]):
-        for indy, offset_y in enumerate(offset_map[1]):
-            A_id_offset[0] = A_id[0] + offset_x
-            A_id_offset[1] = A_id[1] + offset_y
-
-            for indA in range(len(A_id)):
-                indB = find_nearest(B_id, A_id_offset[:, A_ind])
-                chi2s(indx, indy) += (A_id_offset[0, indA] - B_id[0, indB]) ** 2 \
-                                    + (A_id_offset[1, indA] - B_id[1, indB]) ** 2
-
-    chi2_min = np.min(chi2s)
-    [x, y] = np.where(chi2s == chi2_min)
-    offset_x = offset_map[0, x]
-    offset_y = offset_map[1, y]
-
-    while True:
-        chi2s = np.zeros((3,3))
-        chi2s[2, 2] = chi2_min
-'''
