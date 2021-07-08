@@ -6,7 +6,7 @@ img = io.imread('data/test/5_processed.png')
 img2 = np.zeros((img.shape[0] + 25, img.shape[1] + 25))
 img2[25:, 25:] = img
 
-results = chi2test(img, img2)
+results = chi2_align(img, img2)
 
 print(results)
 
