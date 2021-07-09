@@ -25,13 +25,18 @@ def find_chi2(A, B, offset_x=0, offset_y=0, out_dict=False):
         #indB = find_nearest(B_id, A_id_offset[:, indA])
         chi2 += np.min((B_id[0, :] - A_id_offset[0, indA]) ** 2 \
                         + (B_id[1, :] - A_id_offset[1, indA]) ** 2)
-#        chi2 += (A_id_offset[0, indA] - B_id[0, indB]) ** 2 \
-#                    + (A_id_offset[1, indA] - B_id[1, indB]) ** 2
 
+    AAt = np.diagonal(np.dot(A_id, np.transpose(A_id)))
+    BBt = np.diagonal(np.dot(B_id, np.transpose(B_id)))
+    ABt = np.dot([A_id], np.transpose([B_id]))
+    dists = AAt + (-2 * ABt) + np.transpose(BBt)
+    chi2s_noloop = np.sum(np.amin(dists, axis=1))
+    print(AAt.shape)
     if out_dict:
         results = {}
         results["chi2"] = chi2
         results["avg_chi2"] = chi2 / A_id.shape[1]
+        results["chi2_noloop"] = chi2
         return results
     else:
         return chi2
