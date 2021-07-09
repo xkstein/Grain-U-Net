@@ -2,6 +2,7 @@
 # by minimizing chi2 values (dist squared)
 # Based on 1998 Carpenter, Rickman, Barmak Section IV.B.5
 import numpy as np
+import pdb
 
 # This should probably be replaced at some point with like a knnsearch type
 # function for speed. This is probably the slowest way to do this
@@ -23,20 +24,37 @@ def find_chi2(A, B, offset_x=0, offset_y=0, out_dict=False):
         indB = np.argmin((B_id[0, :] - A_id_offset[0, indA]) ** 2 \
                           + (B_id[1, :] - A_id_offset[1, indA]) ** 2)
         #indB = find_nearest(B_id, A_id_offset[:, indA])
-        chi2 += np.min((B_id[0, :] - A_id_offset[0, indA]) ** 2 \
-                        + (B_id[1, :] - A_id_offset[1, indA]) ** 2)
+        chi2 += np.min((B_id[0, indB] - A_id_offset[0, indA]) ** 2 \
+                        + (B_id[1, indB] - A_id_offset[1, indA]) ** 2)
 
-    AAt = np.diagonal(np.dot(A_id, np.transpose(A_id)))
-    BBt = np.diagonal(np.dot(B_id, np.transpose(B_id)))
-    ABt = np.dot([A_id], np.transpose([B_id]))
-    dists = AAt + (-2 * ABt) + np.transpose(BBt)
-    chi2s_noloop = np.sum(np.amin(dists, axis=1))
-    print(AAt.shape)
     if out_dict:
         results = {}
         results["chi2"] = chi2
         results["avg_chi2"] = chi2 / A_id.shape[1]
-        results["chi2_noloop"] = chi2
+        return results
+    else:
+        return chi2
+
+def find_chi2_matrix(A, B, offset_x=0, offset_y=0, out_dict=False):
+    # This is slower for the 256x256 images, which I didn't expect, I'll keep it around 
+    # incase we try much bigger images
+    A_id = np.array(np.where(A > 0))
+    B_id = np.array(np.where(B > 0))
+
+    A_id_offset = np.copy(A_id)
+    A_id_offset[0] = A_id[0] + offset_x
+    A_id_offset[1] = A_id[1] + offset_y
+
+    AAt = np.diagonal(np.dot(np.transpose(A_id_offset), A_id_offset))
+    BBt = np.diagonal(np.dot(np.transpose(B_id), B_id))
+    ABt = np.dot(np.transpose(A_id_offset), B_id)
+    dists = np.transpose([AAt]) + (-2 * ABt) + BBt
+    chi2 = np.sum(np.amin(dists, axis=1))
+
+    if out_dict:
+        results = {}
+        results["chi2"] = chi2
+        results["avg_chi2"] = chi2 / A_id.shape[1]
         return results
     else:
         return chi2
