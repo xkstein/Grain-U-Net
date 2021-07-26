@@ -19,18 +19,19 @@ def find_chi2(A, B, offset_x=0, offset_y=0, out_dict=False):
     A_id_offset[0] = A_id[0] + offset_x
     A_id_offset[1] = A_id[1] + offset_y
 
-    chi2 = 0
+    chi2 = np.array([0] * A_id.shape[1], dtype=np.float64)
     for indA in range(A_id.shape[1]):
         indB = np.argmin((B_id[0, :] - A_id_offset[0, indA]) ** 2 \
                           + (B_id[1, :] - A_id_offset[1, indA]) ** 2)
         #indB = find_nearest(B_id, A_id_offset[:, indA])
-        chi2 += np.min((B_id[0, indB] - A_id_offset[0, indA]) ** 2 \
+        chi2[indA] = np.min((B_id[0, indB] - A_id_offset[0, indA]) ** 2 \
                         + (B_id[1, indB] - A_id_offset[1, indA]) ** 2)
 
     if out_dict:
         results = {}
-        results["chi2"] = chi2
-        results["avg_chi2"] = chi2 / A_id.shape[1]
+        results["chi2"] = np.sum(chi2)
+        results["median_r2"] = np.median(chi2)
+        results["avg_chi2"] = np.average(chi2)
         return results
     else:
         return chi2
