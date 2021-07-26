@@ -1,6 +1,7 @@
 GitTools.ipynb
 **/train/**
 __pycache__
+.ipynb_checkpoints
 *.hdf5
 **/data/**
 .DS_Store
