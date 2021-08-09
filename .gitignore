@@ -5,3 +5,4 @@ __pycache__
 *.hdf5
 **/data/**
 .DS_Store
+**/scratch/**

@@ -60,18 +60,3 @@ def find_iou(pred, ref, verbose=False, ret_arr=False):
     else:
         return np.mean(jaccard)
 
-
-# These next two functions are basically useless, I just don't have the heart
-# to delete them
-def mean_iou(pred, test):
-    return (find_jaccard(pred, test) + find_jaccard(1 - pred, 1 - test))/2
-
-def mean_iou_by_intensity(pred, test, in_range=(0.1,1), n_steps=5, verbose=False):
-    intensity = np.linspace(in_range[0], in_range[1], n_steps)
-    meaniou = 0
-    for thresh in intensity:
-        pred_thresh = pred >= thresh
-        meaniou += find_jaccard(pred_thresh, test)
-        if verbose:
-            show_imgs(pred_thresh, test, overlap=True, wait=False)
-    return meaniou / n_steps
