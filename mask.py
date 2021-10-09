@@ -1,8 +1,10 @@
 from skimage import io, measure, morphology
 import numpy as np
+import os
 
 def find_mask(img=None, thresh=200, close_width=8, verbose=False):
-    if img == None:
+    if img.all() == None:
+        print('Using my image')
         img = io.imread("data/test/key/0.png")
 
     img_thresh = img > thresh 
@@ -33,4 +35,17 @@ def find_mask(img=None, thresh=200, close_width=8, verbose=False):
     return mask
 
 if __name__ == "__main__":
-    find_mask(verbose=True)
+    input_path = 'data/train/label/img'
+    mask_path = 'data/train/label/mask'
+    
+    img_names = np.sort(os.listdir(input_path))
+
+    for img_name in img_names:
+        img_path = input_path + '/' + img_name
+        img = io.imread(img_path)
+        mask_img = find_mask(img)
+        mask_img_path = mask_path + '/' + img_name
+        io.imsave(mask_img_path, mask_img)
+
+#    find_mask(verbose=True)
+
