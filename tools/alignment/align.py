@@ -24,9 +24,10 @@
 # Enter  - Renders the current alignment with the current point selection
 # S      - Saves aligned image (it'll ask you for crop width and height rn)
 # ctrl+# - Selects the point selection index
+# ctrl+l - Load points
+# ctrl+k - Save points
 
 # TODO:
-# Fix the blit
 # Move to pyqt or pyqtgraph
 # Maybe make compatible with Qt4-5Agg
 
@@ -34,14 +35,20 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+from matplotlib.patches import Circle
 from skimage import io
 from transformations import *
-#import pdb
+import csv
+import pdb
 
-raw = io.imread('images/10hr2429_8_raw.tif', as_gray=True)
+raw_fname = 'images/10hr2429_8_raw.tif'
+trace_fname = 'images/10hr2429_trace.gif'
+pts_csv = 'images/10hr2429_pts.csv'
+
+raw = io.imread(raw_fname, as_gray=True)
 if raw.dtype != np.uint8:
     raw = np.uint8(raw * 255/np.max(raw))
-trace = io.imread('images/10hr2429_trace.gif', as_gray=True)
+trace = io.imread(trace_fname, as_gray=True)
 if trace.dtype != np.uint8:
     trace = np.uint8(trace * 255/np.max(trace))
 
@@ -59,6 +66,34 @@ height = 4096
 if verbose:
     print('Traced:', trace.shape)
     print('Raw:', raw.shape)
+
+def load_pts(csv_fname):
+    global pts
+    with open(csv_fname, mode='r') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        fig.canvas.restore_region(bg)
+        for row in csv_reader:
+            pts[0, line_count, 0] = row[0]
+            pts[0, line_count, 1] = row[1]
+            pts[1, line_count, 0] = row[2]
+            pts[1, line_count, 1] = row[3]
+            
+            for axi in range(2):
+                circ = Circle((pts[axi, line_count, 0], pts[axi, line_count, 1]), radius=15, \
+                        color=['r','g','b','k','y'][line_count], fill=False, label=['r','g','b','k','y'][line_count]) 
+                ax[axi].add_patch(circ)
+                ax[axi].draw_artist(circ)
+            line_count += 1
+
+    fig.canvas.blit(fig.bbox)
+    fig.canvas.flush_events()
+
+def save_pts(csv_fname):
+    with open(csv_fname, mode='w') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',')
+        for pt in range(5):
+            csv_writer.writerow([pts[0, pt, 0], pts[0, pt, 1], pts[1, pt, 0], pts[1, pt, 1]])
 
 def onclick(event):
     # make point at x-y and send it somewhere to be labeled
@@ -86,14 +121,18 @@ def onclick(event):
                     if circ.get_label() == ['r','g','b','k','y'][pti]:
                         circ.remove()
 
-                circ = plt.Circle((ptx, pty), radius=15, color=['r','g','b','k','y'][pti], \
+                circ = Circle((ptx, pty), radius=15, color=['r','g','b','k','y'][pti], \
                                     fill=False, label=['r','g','b','k','y'][pti]) 
+                ax[axi].add_patch(circ)
                 
                 fig.canvas.restore_region(bg)
-                ax[axi].add_patch(circ)
-                ax[axi].draw_artist(circ)
+                fig.canvas.draw()
+                for axes in ax:
+                    for patch in axes.patches:
+                        axes.draw_artist(patch)
                 fig.canvas.blit(fig.bbox)
                 fig.canvas.flush_events()
+                pdb.set_trace()
 
                 if verbose:
                     print(f'Selection: axes {axi}\n({ptx:.2f}, {pty:.2f})\n')
@@ -113,11 +152,19 @@ def onclick(event):
 #                width = int(input('Crop width:'))
 #                height = int(input('Crop height:'))
                 
-                crop = plt.Rectangle([ptx,pty], width, height, fill=False, lw=2.0, ls='--', \
+                crop = Rectangle([ptx,pty], width, height, fill=False, lw=2.0, ls='--', \
                                      color='r')
-                fig.canvas.restore_region(bg)
                 ax[axi].add_patch(crop)
-                ax[axi].draw_artist(crop)
+
+                fig.canvas.restore_region(bg)
+#                fuse = np.copy(align)
+#                fuse[trace == 0] = 1
+#                ax[2].imshow(fuse)
+#                ax[2].figure.canvas.draw()
+                pdb.set_trace()
+                for axes in ax:
+                    for patch in axes.patches:
+                        axes.draw_artist(patch)
                 fig.canvas.blit(fig.bbox)
                 fig.canvas.flush_events()
 
@@ -128,13 +175,19 @@ def onclick(event):
                 return 0
 
 def onpress(event):
-    global align
+    global align, bg
 
     if np.char.find(event.key, 'ctrl') != -1:
         if event.key[5:].isdigit():
             if int(event.key[5:]) <= 5:
                 global pti
                 pti = int(event.key[5:]) - 1
+        elif event.key == 'ctrl+k':
+            print('Saving points')
+            save_pts(pts_csv)
+        elif event.key == 'ctrl+l':
+            print('Loading points')
+            load_pts(pts_csv)
 
     elif event.key == 'S':
 #        width = int(input('Crop width:'))
@@ -164,11 +217,18 @@ def onpress(event):
             print("Not enough valid points selected")
             return 0
 
+        fig.canvas.restore_region(bg)
+#        fig.canvas.blit(fig.bbox)
+#        fig.canvas.flush_events()
+
         fuse = np.copy(align)
         fuse[trace == 0] = 1
+        pdb.set_trace()
         ax[2].imshow(fuse)
-        ax[2].figure.canvas.draw()
-        return 0
+#        ax[2].figure.canvas.draw()
+        fig.canvas.blit(fig.bbox)
+        fig.canvas.flush_events()
+        bg = fig.canvas.copy_from_bbox(fig.bbox)
 
 plt.style.use('dark_background')
 fig, ax = plt.subplots(1, 3, figsize=(14, 6))
@@ -184,6 +244,7 @@ fig.canvas.mpl_connect('key_press_event', onpress)
 
 plt.tight_layout()
 
+fig.canvas.draw()
 bg = fig.canvas.copy_from_bbox(fig.bbox)
 
 plt.show()
