@@ -31,6 +31,7 @@
 # Move to pyqt or pyqtgraph
 # Maybe make compatible with Qt4-5Agg
 
+import time
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -66,6 +67,16 @@ height = 4096
 if verbose:
     print('Traced:', trace.shape)
     print('Raw:', raw.shape)
+
+def update_pts():
+    for axi in range(2):
+        print(len(ax[axi].patches))
+        for i in range(5):
+            if pts[axi, i, :].all() != 0:
+                circ = Circle((pts[axi, i, 0], pts[axi, i, 1]), radius=15, color=['r','g','b','k','y'][i], \
+                                fill=False, label=['r','g','b','k','y'][i]) 
+                ax[axi].add_patch(circ)
+                ax[axi].draw_artist(circ)
 
 def load_pts(csv_fname):
     global pts
@@ -117,22 +128,27 @@ def onclick(event):
                 pts[axi, pti, 0] = ptx
                 pts[axi, pti, 1] = pty
 
-                for circ in ax[axi].patches:
-                    if circ.get_label() == ['r','g','b','k','y'][pti]:
-                        circ.remove()
-
-                circ = Circle((ptx, pty), radius=15, color=['r','g','b','k','y'][pti], \
-                                    fill=False, label=['r','g','b','k','y'][pti]) 
-                ax[axi].add_patch(circ)
-                
                 fig.canvas.restore_region(bg)
-                fig.canvas.draw()
-                for axes in ax:
-                    for patch in axes.patches:
-                        axes.draw_artist(patch)
+
+                update_pts()
+
+# is it faster to add and remove points or to never have added before
+#                start = time.time()
+#                for circ in ax[axi].patches:
+#                    if circ.get_label() == ['r','g','b','k','y'][pti]:
+#                        circ.remove()
+#                
+#                # Time this
+#                circ = Circle((ptx, pty), radius=15, color=['r','g','b','k','y'][pti], \
+#                                    fill=False, label=['r','g','b','k','y'][pti]) 
+#                ax[axi].add_patch(circ)
+#                for axes in ax:
+#                    for patch in axes.patches:
+#                        axes.draw_artist(patch)
+#                end = time.time()
+#                print('inline:',end - start)
                 fig.canvas.blit(fig.bbox)
                 fig.canvas.flush_events()
-                pdb.set_trace()
 
                 if verbose:
                     print(f'Selection: axes {axi}\n({ptx:.2f}, {pty:.2f})\n')
@@ -157,11 +173,6 @@ def onclick(event):
                 ax[axi].add_patch(crop)
 
                 fig.canvas.restore_region(bg)
-#                fuse = np.copy(align)
-#                fuse[trace == 0] = 1
-#                ax[2].imshow(fuse)
-#                ax[2].figure.canvas.draw()
-                pdb.set_trace()
                 for axes in ax:
                     for patch in axes.patches:
                         axes.draw_artist(patch)
@@ -217,17 +228,15 @@ def onpress(event):
             print("Not enough valid points selected")
             return 0
 
-        fig.canvas.restore_region(bg)
-#        fig.canvas.blit(fig.bbox)
-#        fig.canvas.flush_events()
+        for axes in ax:
+            for patch in axes.patches:
+                patch.remove()
 
+        fig.canvas.restore_region(bg)
         fuse = np.copy(align)
         fuse[trace == 0] = 1
-        pdb.set_trace()
         ax[2].imshow(fuse)
-#        ax[2].figure.canvas.draw()
-        fig.canvas.blit(fig.bbox)
-        fig.canvas.flush_events()
+        fig.canvas.draw()
         bg = fig.canvas.copy_from_bbox(fig.bbox)
 
 plt.style.use('dark_background')
