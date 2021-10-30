@@ -40,7 +40,7 @@ from matplotlib.patches import Circle
 from skimage import io
 from transformations import *
 import csv
-import pdb
+#import pdb
 
 raw_fname = 'images/10hr2429_8_raw.tif'
 trace_fname = 'images/10hr2429_trace.gif'
@@ -154,18 +154,6 @@ def onclick(event):
                 crop_pts[1] = event.ydata
 
                 fig.canvas.restore_region(bg)
-                '''
-                for patch in ax[axi].patches:
-                    patch.remove()
-                
-                crop = Rectangle([ptx,pty], width, height, fill=False, lw=2.0, ls='--', \
-                                     color='r')
-                ax[axi].add_patch(crop)
-
-                for axes in ax:
-                    for patch in axes.patches:
-                        axes.draw_artist(patch)
-                '''
                 update_pts()
                 fig.canvas.blit(fig.bbox)
                 fig.canvas.flush_events()
@@ -190,13 +178,20 @@ def onpress(event):
             load_pts(pts_csv)
 
     elif event.key == 'S':
-#        width = int(input('Crop width:'))
-#        height = int(input('Crop height:'))
-        
         x = int(round(crop_pts[0]))
         y = int(round(crop_pts[1]))
-        io.imsave("aligned_trace.png", trace[x:x+width,y:y+height])
-        io.imsave("aligned_raw.png", align[x:x+width,y:y+height])
+
+        if (x + width) > align.shape[1] or (y + height) > align.shape[0]:
+            print(align.shape)
+            print(f'Slice: ({y},{y+height}) ({x},{x + width})')
+            print('The cropping region is outside the boundary of one of the images...')
+            return 0
+
+        output_trace = np.ones(align.shape)
+        output_trace[trace == 0] = 0
+
+        io.imsave("aligned_trace.png", np.uint8(255 * output_trace[y:y+height, x:x+width]))
+        io.imsave("aligned_raw.png",   np.uint8(align[y:y+height, x:x+width]))
         
     elif event.key == 'enter':
         # A check to make sure that overlapping pairs of points were selected and find them
@@ -243,14 +238,6 @@ ax[1].imshow(raw/np.max(raw))
 
 fig.canvas.mpl_connect('button_press_event', onclick)
 fig.canvas.mpl_connect('key_press_event', onpress)
-
-'''
-for axes in ax:
-#    axes.callbacks.connect('xlim_changed', lambda event: fig._blit_cache.clear())
-#    axes.callbacks.connect('ylim_changed', lambda event: fig._blit_cache.clear())
-    axes.callbacks.connect('xlim_changed', lambda event: axes.clear())
-    axes.callbacks.connect('ylim_changed', lambda event: axes.clear())
-'''
 
 plt.tight_layout()
 
