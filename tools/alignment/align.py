@@ -70,39 +70,52 @@ if verbose:
 
 def update_pts():
     for axi in range(2):
-        print(len(ax[axi].patches))
         for i in range(5):
             if pts[axi, i, :].all() != 0:
+                for patch in ax[axi].patches:
+                    if patch.get_label() == ['r','g','b','k','y'][i]:
+                        patch.remove()
                 circ = Circle((pts[axi, i, 0], pts[axi, i, 1]), radius=15, color=['r','g','b','k','y'][i], \
                                 fill=False, label=['r','g','b','k','y'][i]) 
                 ax[axi].add_patch(circ)
                 ax[axi].draw_artist(circ)
+
+    if crop_pts.all() != 0:
+        for patch in ax[axi].patches:
+            patch.remove()
+
+        crop = Rectangle([crop_pts[0], crop_pts[1]], width, height, fill=False, lw=2.0, ls='--', \
+                             color='r')
+        ax[2].add_patch(crop)
+        ax[2].draw_artist(crop)
 
 def load_pts(csv_fname):
     global pts
     with open(csv_fname, mode='r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
-        fig.canvas.restore_region(bg)
         for row in csv_reader:
-            pts[0, line_count, 0] = row[0]
-            pts[0, line_count, 1] = row[1]
-            pts[1, line_count, 0] = row[2]
-            pts[1, line_count, 1] = row[3]
-            
-            for axi in range(2):
-                circ = Circle((pts[axi, line_count, 0], pts[axi, line_count, 1]), radius=15, \
-                        color=['r','g','b','k','y'][line_count], fill=False, label=['r','g','b','k','y'][line_count]) 
-                ax[axi].add_patch(circ)
-                ax[axi].draw_artist(circ)
+            if line_count == 0:
+                crop_pts[0] = row[0]
+                crop_pts[1] = row[1]
+                width = row[2]
+                height = row[3]
+            else:
+                pts[0, line_count - 1, 0] = row[0]
+                pts[0, line_count - 1, 1] = row[1]
+                pts[1, line_count - 1, 0] = row[2]
+                pts[1, line_count - 1, 1] = row[3]
             line_count += 1
-
+        
+    fig.canvas.restore_region(bg)
+    update_pts()
     fig.canvas.blit(fig.bbox)
     fig.canvas.flush_events()
 
 def save_pts(csv_fname):
     with open(csv_fname, mode='w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=',')
+        csv_writer.writerow([crop_pts[0], crop_pts[1], width, height])
         for pt in range(5):
             csv_writer.writerow([pts[0, pt, 0], pts[0, pt, 1], pts[1, pt, 0], pts[1, pt, 1]])
 
@@ -122,68 +135,44 @@ def onclick(event):
             print('Selection: not in axes\n')
         else:
             if axi != 2:
-                ptx = event.xdata
-                pty = event.ydata
+                pts[axi, pti, 0] = event.xdata
+                pts[axi, pti, 1] = event.ydata
 
-                pts[axi, pti, 0] = ptx
-                pts[axi, pti, 1] = pty
-
-                fig.canvas.restore_region(bg)
+#                fig.canvas.restore_region(bg)
 
                 update_pts()
 
-# is it faster to add and remove points or to never have added before
-#                start = time.time()
-#                for circ in ax[axi].patches:
-#                    if circ.get_label() == ['r','g','b','k','y'][pti]:
-#                        circ.remove()
-#                
-#                # Time this
-#                circ = Circle((ptx, pty), radius=15, color=['r','g','b','k','y'][pti], \
-#                                    fill=False, label=['r','g','b','k','y'][pti]) 
-#                ax[axi].add_patch(circ)
-#                for axes in ax:
-#                    for patch in axes.patches:
-#                        axes.draw_artist(patch)
-#                end = time.time()
-#                print('inline:',end - start)
                 fig.canvas.blit(fig.bbox)
                 fig.canvas.flush_events()
 
                 if verbose:
-                    print(f'Selection: axes {axi}\n({ptx:.2f}, {pty:.2f})\n')
+                    print(f'Selection: axes {axi}\n({pts[axi,pti,0]:.2f}, {pts[axi,pti,1]:.2f})\n')
                     print(pts)
 
-                return 0
             elif axi == 2:
-                ptx = event.xdata
-                pty = event.ydata
-                
-                crop_pts[0] = ptx
-                crop_pts[1] = pty
+                crop_pts[0] = event.xdata
+                crop_pts[1] = event.ydata
 
+                fig.canvas.restore_region(bg)
+                '''
                 for patch in ax[axi].patches:
                     patch.remove()
-                
-#                width = int(input('Crop width:'))
-#                height = int(input('Crop height:'))
                 
                 crop = Rectangle([ptx,pty], width, height, fill=False, lw=2.0, ls='--', \
                                      color='r')
                 ax[axi].add_patch(crop)
 
-                fig.canvas.restore_region(bg)
                 for axes in ax:
                     for patch in axes.patches:
                         axes.draw_artist(patch)
+                '''
+                update_pts()
                 fig.canvas.blit(fig.bbox)
                 fig.canvas.flush_events()
 
-                return 0
             else:
                 if verbose:
                     print(f'Selection: axes {axi}\n')
-                return 0
 
 def onpress(event):
     global align, bg
@@ -229,8 +218,8 @@ def onpress(event):
             return 0
 
         for axes in ax:
-            for patch in axes.patches:
-                patch.remove()
+            for i in range(len(axes.patches)):
+                axes.patches[0].remove()
 
         fig.canvas.restore_region(bg)
         fuse = np.copy(align)
@@ -238,6 +227,10 @@ def onpress(event):
         ax[2].imshow(fuse)
         fig.canvas.draw()
         bg = fig.canvas.copy_from_bbox(fig.bbox)
+
+        update_pts()
+        fig.canvas.blit(fig.bbox)
+        fig.canvas.flush_events()
 
 plt.style.use('dark_background')
 fig, ax = plt.subplots(1, 3, figsize=(14, 6))
@@ -250,6 +243,14 @@ ax[1].imshow(raw/np.max(raw))
 
 fig.canvas.mpl_connect('button_press_event', onclick)
 fig.canvas.mpl_connect('key_press_event', onpress)
+
+'''
+for axes in ax:
+#    axes.callbacks.connect('xlim_changed', lambda event: fig._blit_cache.clear())
+#    axes.callbacks.connect('ylim_changed', lambda event: fig._blit_cache.clear())
+    axes.callbacks.connect('xlim_changed', lambda event: axes.clear())
+    axes.callbacks.connect('ylim_changed', lambda event: axes.clear())
+'''
 
 plt.tight_layout()
 
