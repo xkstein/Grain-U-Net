@@ -40,11 +40,12 @@ from matplotlib.patches import Circle
 from skimage import io
 from transformations import *
 import csv
-#import pdb
+import pdb
 
-raw_fname = 'images/10hr2429_8_raw.tif'
+raw_fname = 'images/10hr2431_8_raw.tif'
 trace_fname = 'images/10hr2429_trace.gif'
-pts_csv = 'images/10hr2429_pts.csv'
+pts_csv = 'images/10hr2431_pts.csv'
+pts_csv_save = 'images/10hr2431_pts.csv'
 
 raw = io.imread(raw_fname, as_gray=True)
 if raw.dtype != np.uint8:
@@ -68,26 +69,43 @@ if verbose:
     print('Traced:', trace.shape)
     print('Raw:', raw.shape)
 
+class PatchExists(Exception):
+    pass
+
 def update_pts():
     for axi in range(2):
         for i in range(5):
             if pts[axi, i, :].all() != 0:
-                for patch in ax[axi].patches:
-                    if patch.get_label() == ['r','g','b','k','y'][i]:
-                        patch.remove()
-                circ = Circle((pts[axi, i, 0], pts[axi, i, 1]), radius=15, color=['r','g','b','k','y'][i], \
-                                fill=False, label=['r','g','b','k','y'][i]) 
-                ax[axi].add_patch(circ)
-                ax[axi].draw_artist(circ)
+                try:
+                    for patch in ax[axi].patches:
+                        if patch.get_label() == ['r','g','b','k','y'][i]:
+                            if patch.center[0] == pts[axi, i, 0] and patch.center[1] == pts[axi, i, 1]:
+                                raise PatchExists
+                            else:
+                                patch.remove()
+                                break
+                    circ = Circle((pts[axi, i, 0], pts[axi, i, 1]), radius=15, color=['r','g','b','k','y'][i], \
+                                    fill=False, label=['r','g','b','k','y'][i]) 
+                    ax[axi].add_patch(circ)
+                    ax[axi].draw_artist(circ)
+                except PatchExists:
+                    continue
 
-    if crop_pts.all() != 0:
-        for patch in ax[axi].patches:
-            patch.remove()
+    try:
+        if crop_pts.all() != 0:
+            if len(ax[2].patches) != 0:
+                if crop_pts[0] == ax[2].patches[0].xy[0] or crop_pts[1] == ax[2].patches[0].xy[1]:
+                    raise PatchExists # lol, this could be a return, oh well, in case we add more
 
-        crop = Rectangle([crop_pts[0], crop_pts[1]], width, height, fill=False, lw=2.0, ls='--', \
-                             color='r')
-        ax[2].add_patch(crop)
-        ax[2].draw_artist(crop)
+            for patch in ax[2].patches:
+                patch.remove()
+
+            crop = Rectangle([crop_pts[0], crop_pts[1]], width, height, fill=False, lw=2.0, ls='--', \
+                                 color='r')
+            ax[2].add_patch(crop)
+            ax[2].draw_artist(crop)
+    except PatchExists:
+        pass
 
 def load_pts(csv_fname):
     global pts
@@ -172,7 +190,7 @@ def onpress(event):
                 pti = int(event.key[5:]) - 1
         elif event.key == 'ctrl+k':
             print('Saving points')
-            save_pts(pts_csv)
+            save_pts(pts_csv_save)
         elif event.key == 'ctrl+l':
             print('Loading points')
             load_pts(pts_csv)
@@ -238,6 +256,10 @@ ax[1].imshow(raw/np.max(raw))
 
 fig.canvas.mpl_connect('button_press_event', onclick)
 fig.canvas.mpl_connect('key_press_event', onpress)
+
+#for axes in ax:
+#    axes.callbacks.connect('xlim_changed', lambda event: update_pts())
+#    axes.callbacks.connect('ylim_changed', lambda event: update_pts())
 
 plt.tight_layout()
 
