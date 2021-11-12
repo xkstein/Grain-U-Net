@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 
-# Controls:
-# Middle click: Select point
-# Numbers 1-5:  Select marker index (NOTE: you have to lclick on the plot that you want to make this change in each time, its sort of an unfortunate thing, deciding on how to fix it)
-# l:            Load points (saved at trace_align_fname)
-# p:            Save current point
-# c:            Compile and align images with selected points
-# o:            Open a new raw image to edit
-# o:            Save roi of aligned images
-# m:            Toggles movablility of roi
-
 # TODO:
 # Add commandline argument support for like all of the vars that need to be set up
 
