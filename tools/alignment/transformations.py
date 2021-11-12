@@ -34,8 +34,6 @@ def transform_2pt(img, ref_pts, trans_pts, out_size):
                             / np.abs(trans_pts[1, 1] - trans_pts[0, 1])
 
     dtheta = theta_0 - theta_1
-    if verbose:
-        print(dtheta, theta_0, theta_1)
 
     R = np.array([[np.cos(dtheta), -np.sin(dtheta), 0],
                   [np.sin(dtheta), np.cos(dtheta), 0],
