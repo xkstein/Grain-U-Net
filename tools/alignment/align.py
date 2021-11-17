@@ -15,13 +15,14 @@ import csv
 import sys
 import pdb
 
-folder = 'images/2153/'
-TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2153.png'
-RAW_PATH =      f'{folder}10HR_Al_100nm_2152_F11_1_8bit.tif'
-PTS_CSV_READ =  f'{folder}aligned/10hr2152_1.csv'
-PTS_CSV_SAVE =      f'{folder}aligned/10hr2152_1.csv'
-TRACE_PATH_SAVE = f'{folder}aligned/10hr2152_1_trace.png'
-RAW_PATH_SAVE =   f'{folder}aligned/10hr2152_1.png'
+folder = 'images/2400/'
+TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2400.png'
+TRACE_PATH_SAVE = f'{folder}aligned/10hr2400_trace.png'
+#TRACE_PATH_SAVE = None
+RAW_PATH =      f'{folder}10HR_Al_100nm_2400_F2_1_8bit.tif'
+RAW_PATH_SAVE =   f'{folder}aligned/10hr2400_1.png'
+PTS_CSV_READ =  f'{folder}aligned/10hr2400_1.csv'
+PTS_CSV_SAVE =      f'{folder}aligned/10hr2400_1.csv'
 
 #raw = io.imread('roitest.png', as_gray=True)
 raw = io.imread(RAW_PATH, as_gray=True)
@@ -33,15 +34,13 @@ if trace.dtype != np.uint8:
 
 align = []
 
-pts = np.zeros((2, 5, 2))
-pti = 0
+#pts = np.zeros((2, 5, 2))
 
-c_pos = np.zeros(2)
-c_size = np.array([4096.0, 4096.0])
-
-def load_pts(csv_fname):
+def read_csv(csv_fname):
     print(f'Loading points from {csv_fname}')
-    global pts
+    c_pos = np.zeros(2)
+    c_size = np.zeros(2)
+    pts = np.zeros((2, 5, 2))
     with open(csv_fname, mode='r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -57,19 +56,15 @@ def load_pts(csv_fname):
                 pts[1, line_count - 1, 0] = row[2]
                 pts[1, line_count - 1, 1] = row[3]
             line_count += 1
-        
-    for i in range(2):
-        image_plot[i].points = pts[i, :, :]
-        image_plot[i].setPoints()
-    
-    image_plot[2].roi.setPos(c_pos[0], c_pos[1], update=False)
-    image_plot[2].roi.setSize(c_size)
+    return [pts, c_pos, c_size]
 
-def save_pts(csv_fname):
+def save_csv(csv_fname):
     print(f'Saving points to {csv_fname}')
+    pts = np.zeros((2, 5, 2))
     for i in range(2):
         pts[i,:,:] = image_plot[i].points
         image_plot[i].setPoints()
+    [c_pos, c_size] = get_crop(image_plot[2])
 
     with open(csv_fname, mode='w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=',')
@@ -77,14 +72,10 @@ def save_pts(csv_fname):
         for pt in range(5):
             csv_writer.writerow([pts[0, pt, 0], pts[0, pt, 1], pts[1, pt, 0], pts[1, pt, 1]])
 
-def update_crop(event):
-    global c_pos
-    c_pos[0] = int(event.pos()[0])
-    c_pos[1] = int(event.pos()[1])
-    c_size[0] = int(event.size()[0])
-    c_size[1] = int(event.size()[1])
-
 def cropnsave(fname, img, c_pos, c_size):
+    if fname is None:
+        print('Image name not defined, cannot save')
+        return 0
     if int(c_pos[1] + c_size[0]) > img.shape[0] or int(c_pos[0] + c_size[1]) > img.shape[1]:
         print(f'Oversized crop, adding black border to {fname}')
         matt = np.zeros((int(c_pos[1] + c_size[0]), int(c_pos[0] + c_size[1])), dtype=np.uint8)
@@ -95,21 +86,30 @@ def cropnsave(fname, img, c_pos, c_size):
         io.imsave(fname, img[int(c_pos[1]):int(c_pos[1]+c_size[0]), \
                                             int(c_pos[0]):int(c_pos[0]+c_size[1])])
 
+def get_crop(plot):
+    pos = np.array([plot.roi.pos().x(), plot.roi.pos().y()])
+    dimensions = np.array([plot.roi.size().x(), plot.roi.size().y()])
+    return [pos, dimensions]
+
 def key_press(event):
-    global pti, align, raw, RAW_PATH_SAVE
+    global align, raw, RAW_PATH_SAVE, PTS_CSV_SAVE
 
     # Loads points
     if event.text() == 'l':
-        load_pts(PTS_CSV_READ)
+        [pts, c_pos, c_size] = read_csv(PTS_CSV_READ)
+        for i in [0, 1]:
+            image_plot[i].points = pts[i, :, :]
+            image_plot[i].setPoints()
+        image_plot[2].roi.setPos(c_pos[0], c_pos[1], update=False)
+        image_plot[2].roi.setSize(c_size)
 
     # Saves the selected points
     if event.text() == 'p':
-        global PTS_CSV_SAVE
         if PTS_CSV_SAVE is None:
             PTS_CSV_SAVE = QFileDialog.getSaveFileName(central_win, 'Save file', '.')[0]
-            save_pts(PTS_CSV_SAVE)
+            save_csv(PTS_CSV_SAVE)
         else:
-            save_pts(PTS_CSV_SAVE)
+            save_csv(PTS_CSV_SAVE)
 
     # Opens a file
     elif event.text() == 'o':
@@ -127,8 +127,10 @@ def key_press(event):
 
     # Does transformation with selected points
     elif event.text() == 'a':
+        pts = np.zeros((2, 5, 2))
         for i in range(2):
             pts[i, :, :] = image_plot[i].points
+        [c_pos, c_size] = get_crop(image_plot[2])
 
         non0_pts = (pts != 0)
         selected_pts = np.logical_or(non0_pts[:,:,0], non0_pts[:,:,1])
@@ -158,6 +160,7 @@ def key_press(event):
 
     # Saves aligned images
     elif event.text() == 's':
+        [c_pos, c_size] = get_crop(image_plot[2])
         if RAW_PATH_SAVE is None:
             RAW_PATH_SAVE = QFileDialog.getSaveFileName(central_win, 'Save file', '.')[0]
             if PTS_CSV_SAVE is None:
@@ -187,7 +190,7 @@ image_plot[1].setImage(raw)
 
 plot = ImagePlot(use_roi = True, movable_roi=True)
 plot.sigKeyPress.connect(key_press)
-plot.roi.sigRegionChangeFinished.connect(update_crop)
+#plot.roi.sigRegionChangeFinished.connect(update_crop)
 layout.addWidget(plot)
 image_plot.append(plot)
 
