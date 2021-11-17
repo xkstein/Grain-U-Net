@@ -2,6 +2,7 @@
 
 # TODO:
 # Add commandline argument support for like all of the vars that need to be set up
+# make an object that handles all the io, but I kinda want to refrain for like just making this OO for the sake of OO
 
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QFileDialog
@@ -14,13 +15,13 @@ import csv
 import sys
 import pdb
 
-folder = 'images/2144/'
-TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2144.png'
-RAW_PATH =      f'{folder}10HR_Al_100nm_2145_F4_2_8bit.tif'
-PTS_CSV_READ =  f'{folder}aligned/10hr2145_2.csv'
-PTS_CSV_SAVE =      f'{folder}aligned/10hr2145_2.csv'
-TRACE_PATH_SAVE = f'{folder}aligned/10hr2145_2_trace.png'
-RAW_PATH_SAVE =   f'{folder}aligned/10hr2145_2.png'
+folder = 'images/2153/'
+TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2153.png'
+RAW_PATH =      f'{folder}10HR_Al_100nm_2152_F11_1_8bit.tif'
+PTS_CSV_READ =  f'{folder}aligned/10hr2152_1.csv'
+PTS_CSV_SAVE =      f'{folder}aligned/10hr2152_1.csv'
+TRACE_PATH_SAVE = f'{folder}aligned/10hr2152_1_trace.png'
+RAW_PATH_SAVE =   f'{folder}aligned/10hr2152_1.png'
 
 #raw = io.imread('roitest.png', as_gray=True)
 raw = io.imread(RAW_PATH, as_gray=True)
