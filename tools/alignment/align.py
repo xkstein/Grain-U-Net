@@ -15,14 +15,14 @@ import csv
 import sys
 import pdb
 
-folder = 'images/2400/'
-TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2400.png'
-TRACE_PATH_SAVE = f'{folder}aligned/10hr2400_trace.png'
+folder = 'images/2405/'
+TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2405.png'
+TRACE_PATH_SAVE = f'{folder}aligned/10hr2404_trace.png'
 #TRACE_PATH_SAVE = None
-RAW_PATH =      f'{folder}10HR_Al_100nm_2400_F2_1_8bit.tif'
-RAW_PATH_SAVE =   f'{folder}aligned/10hr2400_1.png'
-PTS_CSV_READ =  f'{folder}aligned/10hr2400_1.csv'
-PTS_CSV_SAVE =      f'{folder}aligned/10hr2400_1.csv'
+RAW_PATH =      f'{folder}10HR_Al_100nm_2404_F5_1_8bit.tif'
+RAW_PATH_SAVE =   f'{folder}aligned/10hr2404_1.png'
+PTS_CSV_READ =  f'{folder}aligned/10hr2404_1.csv'
+PTS_CSV_SAVE =      f'{folder}aligned/10hr2404_1.csv'
 
 #raw = io.imread('roitest.png', as_gray=True)
 raw = io.imread(RAW_PATH, as_gray=True)
