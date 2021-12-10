@@ -13,24 +13,28 @@ from skimage import io
 import numpy as np
 import csv
 import sys
+import time
 import pdb
 
-folder = 'images/2405/'
-TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2405.png'
-TRACE_PATH_SAVE = f'{folder}aligned/10hr2404_trace.png'
+folder = 'images/2413/'
+TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 4hr2413.png'
+TRACE_PATH_SAVE = f'{folder}aligned/4hr2413_trace.png'
 #TRACE_PATH_SAVE = None
-RAW_PATH =      f'{folder}10HR_Al_100nm_2404_F5_1_8bit.tif'
-RAW_PATH_SAVE =   f'{folder}aligned/10hr2404_1.png'
-PTS_CSV_READ =  f'{folder}aligned/10hr2404_1.csv'
-PTS_CSV_SAVE =      f'{folder}aligned/10hr2404_1.csv'
+RAW_PATH =      f'{folder}4HR_Al_100nm_2413.tif'
+RAW_PATH_SAVE = None
+PTS_CSV_READ = f'{folder}aligned/4hr2413_1.csv'
+PTS_CSV_SAVE = None
+# RAW_PATH_SAVE =   f'{folder}aligned/4hr2434_1.png'
+# PTS_CSV_READ =  f'{folder}aligned/4hr2434_1.csv'
+# PTS_CSV_SAVE =      f'{folder}aligned/10hr2161_3.csv'
 
 #raw = io.imread('roitest.png', as_gray=True)
 raw = io.imread(RAW_PATH, as_gray=True)
 if raw.dtype != np.uint8:
-    raw = np.uint8(raw * 255/np.max(raw))
+    raw = np.uint8(255/np.max(raw) * raw)
 trace = io.imread(TRACE_PATH, as_gray=True)
 if trace.dtype != np.uint8:
-    trace = np.uint8(trace * 255/np.max(trace))
+    trace = np.uint8(255/np.max(trace) * trace)
 
 align = []
 
@@ -80,11 +84,12 @@ def cropnsave(fname, img, c_pos, c_size):
         print(f'Oversized crop, adding black border to {fname}')
         matt = np.zeros((int(c_pos[1] + c_size[0]), int(c_pos[0] + c_size[1])), dtype=np.uint8)
         matt[:img.shape[0], :img.shape[1]] = img[:matt.shape[0], :matt.shape[1]]
+        # NOTE: you definitely could use something other than qt as your export plugin, I found that the default was some 14x slower
         io.imsave(fname, matt[int(c_pos[1]):int(c_pos[1]+c_size[0]), \
-                                            int(c_pos[0]):int(c_pos[0]+c_size[1])])
+                                            int(c_pos[0]):int(c_pos[0]+c_size[1])], plugin='qt')
     else:
         io.imsave(fname, img[int(c_pos[1]):int(c_pos[1]+c_size[0]), \
-                                            int(c_pos[0]):int(c_pos[0]+c_size[1])])
+                                            int(c_pos[0]):int(c_pos[0]+c_size[1])], plugin='qt')
 
 def get_crop(plot):
     pos = np.array([plot.roi.pos().x(), plot.roi.pos().y()])
@@ -116,7 +121,7 @@ def key_press(event):
         RAW_PATH = QFileDialog.getOpenFileName(central_win, 'Open file', '.', "Image files (*.jpg *.gif *.png *.tif)")[0]
         raw = io.imread(RAW_PATH, as_gray=True)
         if raw.dtype != np.uint8:
-            raw = np.uint8(raw * 255/np.max(raw))
+            raw = np.uint8(255/np.max(raw) * raw)
         image_plot[1].setImage(raw)
         RAW_PATH_SAVE = None
         PTS_CSV_SAVE = None
@@ -169,10 +174,20 @@ def key_press(event):
         cropnsave(RAW_PATH_SAVE, align, c_pos, c_size)
         cropnsave(TRACE_PATH_SAVE, trace, c_pos, c_size)
       
+class Window(QMainWindow):
+    def __init__(self):
+        super(Window, self).__init__()
+        self.setWindowTitle("Manual Align")
 
+        menu = self.menuBar()
+        fileMenu = menu.addMenu("&File")
+        fileMenu.addAction("Open")
+
+    
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
 app = QApplication([])
-win = QMainWindow()
+#win = QMainWindow()
+win = Window()
 
 central_win = QWidget()
 layout = QHBoxLayout()

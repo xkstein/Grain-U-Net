@@ -8,7 +8,7 @@ import pdb
 key_path = 'Pt94kx20um_key_aligned.png'
 #ref_path = ['Pt94kx20um_99_aligned.png']
 ref_path = ['Pt94kx20um_key_aligned.png']
-n_slices = 3    # The number of slices when not counting any overlapping
+n_slices = 2    # The number of slices when not counting any overlapping
 start = 0
 name_suf = "_predicted.png"
     
@@ -36,7 +36,8 @@ def main():
         print(f"Error: n_slices:{n_slices} doesn't cleanly divide the dimensions of this image")
         exit(1)
 
-    sub_coords = [(0,0), (width // 6,0), (0,height // 6), (width // 6,height // 6)]
+    #sub_coords = [(0,0), (width // (2 * n_slices),0), (0,height // (2 * n_slices)), (width // (2 * n_slices),height // 6)]
+    sub_coords = [(0,0)]
     dims = (width // n_slices, height // n_slices)
     name_ind = start
     for i in range(n_slices):
