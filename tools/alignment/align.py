@@ -1,152 +1,137 @@
 #!/usr/bin/env python3
 
-# Author: Jamie (jamie.k.eckstein@gmail.com)
-#
-# Dependancies:
-# matplotlib, numpy, skimage, transformations (file), cv2, pymicro
-#
-# Warning: 
-# This ended up being really weird because it uses matplotlib which really isn't
-# designed with this stuff in mind. 
-#
-# Usage:
-# Select points by double-left clicking on them in both images, then press ctrl+2
-# to select the second pair (this goes up to the ctrl+5). You can select anywhere
-# between 2 and 5 pairs of points, the higher the better. You can also re-select
-# after rendering the alignment (which you do by pressing enter).
-# 
-# Right now cropping is done by choosing upper-left corner of your future crop
-# and inputting the width and the height of the final image. Needs work.
-#
-# Keymap:
-# mouse1 - Double click to select a point
-# mouse2 - Double click cycles through the point selection index
-# Enter  - Renders the current alignment with the current point selection
-# S      - Saves aligned image (it'll ask you for crop width and height rn)
-# ctrl+# - Selects the point selection index
-
 # TODO:
-# Fix the blit
-# Move to pyqt or pyqtgraph
-# Maybe make compatible with Qt4-5Agg
+# Add commandline argument support for like all of the vars that need to be set up
+# make an object that handles all the io, but I kinda want to refrain for like just making this OO for the sake of OO
 
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-from skimage import io
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QFileDialog
+from ImagePlot import ImagePlot
 from transformations import *
-#import pdb
+import pyqtgraph as pg
+from skimage import io
+import numpy as np
+import csv
+import sys
+import pdb
 
-raw = io.imread('images/10hr2429_8_raw.tif', as_gray=True)
+folder = 'images/2405/'
+TRACE_PATH =    f'{folder}trace_new_clean_Drawing of 10hr2405.png'
+TRACE_PATH_SAVE = f'{folder}aligned/10hr2404_trace.png'
+#TRACE_PATH_SAVE = None
+RAW_PATH =      f'{folder}10HR_Al_100nm_2404_F5_1_8bit.tif'
+RAW_PATH_SAVE =   f'{folder}aligned/10hr2404_1.png'
+PTS_CSV_READ =  f'{folder}aligned/10hr2404_1.csv'
+PTS_CSV_SAVE =      f'{folder}aligned/10hr2404_1.csv'
+
+#raw = io.imread('roitest.png', as_gray=True)
+raw = io.imread(RAW_PATH, as_gray=True)
 if raw.dtype != np.uint8:
     raw = np.uint8(raw * 255/np.max(raw))
-trace = io.imread('images/10hr2429_trace.gif', as_gray=True)
+trace = io.imread(TRACE_PATH, as_gray=True)
 if trace.dtype != np.uint8:
     trace = np.uint8(trace * 255/np.max(trace))
 
-#trace = cv2.cvtColor(trace[:,:,:-1], cv2.COLOR_RGB2GRAY)/255
 align = []
-verbose = False
 
-pts = np.zeros((2, 5, 2))
-pti = 0
+#pts = np.zeros((2, 5, 2))
 
-crop_pts = np.zeros(2)
-width = 4096
-height = 4096
-
-if verbose:
-    print('Traced:', trace.shape)
-    print('Raw:', raw.shape)
-
-def onclick(event):
-    # make point at x-y and send it somewhere to be labeled
-    if event.dblclick:
-        if event.button == 3:
-            global pti
-            pti = (pti + 1) % 3
-            if verbose:
-                print(f"Pti {pti}")
-            return 0
-
-        try:
-            axi = [fig.axes[i] == event.inaxes for i in range(3)].index(1)
-        except ValueError:
-            print('Selection: not in axes\n')
-        else:
-            if axi != 2:
-                ptx = event.xdata
-                pty = event.ydata
-
-                pts[axi, pti, 0] = ptx
-                pts[axi, pti, 1] = pty
-
-                for circ in ax[axi].patches:
-                    if circ.get_label() == ['r','g','b','k','y'][pti]:
-                        circ.remove()
-
-                circ = plt.Circle((ptx, pty), radius=15, color=['r','g','b','k','y'][pti], \
-                                    fill=False, label=['r','g','b','k','y'][pti]) 
-                
-                fig.canvas.restore_region(bg)
-                ax[axi].add_patch(circ)
-                ax[axi].draw_artist(circ)
-                fig.canvas.blit(fig.bbox)
-                fig.canvas.flush_events()
-
-                if verbose:
-                    print(f'Selection: axes {axi}\n({ptx:.2f}, {pty:.2f})\n')
-                    print(pts)
-
-                return 0
-            elif axi == 2:
-                ptx = event.xdata
-                pty = event.ydata
-                
-                crop_pts[0] = ptx
-                crop_pts[1] = pty
-
-                for patch in ax[axi].patches:
-                    patch.remove()
-                
-#                width = int(input('Crop width:'))
-#                height = int(input('Crop height:'))
-                
-                crop = plt.Rectangle([ptx,pty], width, height, fill=False, lw=2.0, ls='--', \
-                                     color='r')
-                fig.canvas.restore_region(bg)
-                ax[axi].add_patch(crop)
-                ax[axi].draw_artist(crop)
-                fig.canvas.blit(fig.bbox)
-                fig.canvas.flush_events()
-
-                return 0
+def read_csv(csv_fname):
+    print(f'Loading points from {csv_fname}')
+    c_pos = np.zeros(2)
+    c_size = np.zeros(2)
+    pts = np.zeros((2, 5, 2))
+    with open(csv_fname, mode='r') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            if line_count == 0:
+                c_pos[0] = row[0]
+                c_pos[1] = row[1]
+                c_size[0] = float(row[2])
+                c_size[1] = float(row[3])
             else:
-                if verbose:
-                    print(f'Selection: axes {axi}\n')
-                return 0
+                pts[0, line_count - 1, 0] = row[0]
+                pts[0, line_count - 1, 1] = row[1]
+                pts[1, line_count - 1, 0] = row[2]
+                pts[1, line_count - 1, 1] = row[3]
+            line_count += 1
+    return [pts, c_pos, c_size]
 
-def onpress(event):
-    global align
+def save_csv(csv_fname):
+    print(f'Saving points to {csv_fname}')
+    pts = np.zeros((2, 5, 2))
+    for i in range(2):
+        pts[i,:,:] = image_plot[i].points
+        image_plot[i].setPoints()
+    [c_pos, c_size] = get_crop(image_plot[2])
 
-    if np.char.find(event.key, 'ctrl') != -1:
-        if event.key[5:].isdigit():
-            if int(event.key[5:]) <= 5:
-                global pti
-                pti = int(event.key[5:]) - 1
+    with open(csv_fname, mode='w') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',')
+        csv_writer.writerow([c_pos[0], c_pos[1], c_size[0], c_size[1]])
+        for pt in range(5):
+            csv_writer.writerow([pts[0, pt, 0], pts[0, pt, 1], pts[1, pt, 0], pts[1, pt, 1]])
 
-    elif event.key == 'S':
-#        width = int(input('Crop width:'))
-#        height = int(input('Crop height:'))
-        
-        x = int(round(crop_pts[0]))
-        y = int(round(crop_pts[1]))
-        io.imsave("aligned_trace.png", trace[x:x+width,y:y+height])
-        io.imsave("aligned_raw.png", align[x:x+width,y:y+height])
-        
-    elif event.key == 'enter':
-        # A check to make sure that overlapping pairs of points were selected and find them
+def cropnsave(fname, img, c_pos, c_size):
+    if fname is None:
+        print('Image name not defined, cannot save')
+        return 0
+    if int(c_pos[1] + c_size[0]) > img.shape[0] or int(c_pos[0] + c_size[1]) > img.shape[1]:
+        print(f'Oversized crop, adding black border to {fname}')
+        matt = np.zeros((int(c_pos[1] + c_size[0]), int(c_pos[0] + c_size[1])), dtype=np.uint8)
+        matt[:img.shape[0], :img.shape[1]] = img[:matt.shape[0], :matt.shape[1]]
+        io.imsave(fname, matt[int(c_pos[1]):int(c_pos[1]+c_size[0]), \
+                                            int(c_pos[0]):int(c_pos[0]+c_size[1])])
+    else:
+        io.imsave(fname, img[int(c_pos[1]):int(c_pos[1]+c_size[0]), \
+                                            int(c_pos[0]):int(c_pos[0]+c_size[1])])
+
+def get_crop(plot):
+    pos = np.array([plot.roi.pos().x(), plot.roi.pos().y()])
+    dimensions = np.array([plot.roi.size().x(), plot.roi.size().y()])
+    return [pos, dimensions]
+
+def key_press(event):
+    global align, raw, RAW_PATH_SAVE, PTS_CSV_SAVE
+
+    # Loads points
+    if event.text() == 'l':
+        [pts, c_pos, c_size] = read_csv(PTS_CSV_READ)
+        for i in [0, 1]:
+            image_plot[i].points = pts[i, :, :]
+            image_plot[i].setPoints()
+        image_plot[2].roi.setPos(c_pos[0], c_pos[1], update=False)
+        image_plot[2].roi.setSize(c_size)
+
+    # Saves the selected points
+    if event.text() == 'p':
+        if PTS_CSV_SAVE is None:
+            PTS_CSV_SAVE = QFileDialog.getSaveFileName(central_win, 'Save file', '.')[0]
+            save_csv(PTS_CSV_SAVE)
+        else:
+            save_csv(PTS_CSV_SAVE)
+
+    # Opens a file
+    elif event.text() == 'o':
+        RAW_PATH = QFileDialog.getOpenFileName(central_win, 'Open file', '.', "Image files (*.jpg *.gif *.png *.tif)")[0]
+        raw = io.imread(RAW_PATH, as_gray=True)
+        if raw.dtype != np.uint8:
+            raw = np.uint8(raw * 255/np.max(raw))
+        image_plot[1].setImage(raw)
+        RAW_PATH_SAVE = None
+        PTS_CSV_SAVE = None
+
+    # Locks ROI
+    elif event.text() == 'm':
+        image_plot[2].roi.translatable = (image_plot[2].roi.translatable != True)
+
+    # Does transformation with selected points
+    elif event.text() == 'a':
+        pts = np.zeros((2, 5, 2))
+        for i in range(2):
+            pts[i, :, :] = image_plot[i].points
+        [c_pos, c_size] = get_crop(image_plot[2])
+
         non0_pts = (pts != 0)
         selected_pts = np.logical_or(non0_pts[:,:,0], non0_pts[:,:,1])
         overlapping = np.logical_and(selected_pts[0], selected_pts[1])
@@ -164,26 +149,54 @@ def onpress(event):
             print("Not enough valid points selected")
             return 0
 
-        fuse = np.copy(align)
-        fuse[trace == 0] = 1
-        ax[2].imshow(fuse)
-        ax[2].figure.canvas.draw()
-        return 0
+        # The fused image on the right:
+        fuse = np.zeros((align.shape[0], align.shape[1], 3))
+        fuse[:,:,:] = np.dstack((align,align,align))
+        fuse[trace == 0, 0] = 255
+        fuse[trace == 0, 1] = 0
+        fuse[trace == 0, 2] = 0
+        image_plot[2].setImage(fuse)
+        image_plot[2].roi.setSize(pg.Point(c_size[0], c_size[1]))
 
-plt.style.use('dark_background')
-fig, ax = plt.subplots(1, 3, figsize=(14, 6))
+    # Saves aligned images
+    elif event.text() == 's':
+        [c_pos, c_size] = get_crop(image_plot[2])
+        if RAW_PATH_SAVE is None:
+            RAW_PATH_SAVE = QFileDialog.getSaveFileName(central_win, 'Save file', '.')[0]
+            if PTS_CSV_SAVE is None:
+                PTS_CSV_SAVE = f'{RAW_PATH_SAVE[:-4]}.csv'
+            
+        cropnsave(RAW_PATH_SAVE, align, c_pos, c_size)
+        cropnsave(TRACE_PATH_SAVE, trace, c_pos, c_size)
+      
 
-ax[0].axis('off')
-ax[1].axis('off')
-ax[2].axis('off')
-ax[0].imshow(trace/np.max(trace))
-ax[1].imshow(raw/np.max(raw))
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+app = QApplication([])
+win = QMainWindow()
 
-fig.canvas.mpl_connect('button_press_event', onclick)
-fig.canvas.mpl_connect('key_press_event', onpress)
+central_win = QWidget()
+layout = QHBoxLayout()
+central_win.setLayout(layout)
+win.setCentralWidget(central_win)
 
-plt.tight_layout()
+image_plot = []
+for i in range(2):
+    plot = ImagePlot()
+    plot.sigKeyPress.connect(key_press)
+    layout.addWidget(plot)
+    image_plot.append(plot)
+image_plot[0].setImage(trace)
+image_plot[1].setImage(raw)
 
-bg = fig.canvas.copy_from_bbox(fig.bbox)
+plot = ImagePlot(use_roi = True, movable_roi=True)
+plot.sigKeyPress.connect(key_press)
+#plot.roi.sigRegionChangeFinished.connect(update_crop)
+layout.addWidget(plot)
+image_plot.append(plot)
 
-plt.show()
+# You can access points by accessing image_plot1.points
+win.show()
+
+if (sys.flags.interactive != 1) or not hasattr(Qt.QtCore, "PYQT_VERSION"):
+    QApplication.instance().exec_()
+
