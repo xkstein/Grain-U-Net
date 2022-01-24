@@ -1,6 +1,7 @@
 from skimage import io, measure, morphology
 import numpy as np
 import os
+import pdb
 
 def find_mask(img=None, thresh=200, close_width=8, verbose=False):
     if img.all() == None:
@@ -35,15 +36,18 @@ def find_mask(img=None, thresh=200, close_width=8, verbose=False):
     return mask
 
 if __name__ == "__main__":
-    input_path = 'data/train/label/img'
-    mask_path = 'data/train/label/mask'
+    input_path = 'data/train/label'
+    mask_path = 'data/train/mask'
     
     img_names = np.sort(os.listdir(input_path))
+    valid = np.core.defchararray.find(img_names, '.png')
+    img_names = img_names[valid != -1]
 
     for img_name in img_names:
         img_path = input_path + '/' + img_name
         img = io.imread(img_path)
         mask_img = find_mask(img)
+        pdb.set_trace()
         mask_img_path = mask_path + '/' + img_name
         io.imsave(mask_img_path, mask_img)
 
