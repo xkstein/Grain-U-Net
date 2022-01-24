@@ -17,14 +17,14 @@ mae_metric = tf.keras.metrics.MeanAbsoluteError(name="mae")
 
 class UnetModel(keras.Model):
     def train_step(self, data):
-        x = data[0]/255
-        y_true = data[1]/255
-        y_mask = data[2]/255
+        x = data[0]
+        y_true = data[1]
+        y_mask = data[2]
 
         with tf.GradientTape() as tape:
             y_pred = self(data[0], training=True)  # Forward pass
             # Compute the loss value
-            loss = binary_crossentropy(y_true, y_pred, y_mask)
+            loss = weighted_binary_crossentropy(y_true, y_pred, y_mask)
 
         # Compute gradients
         trainable_vars = self.trainable_variables
@@ -41,10 +41,9 @@ class UnetModel(keras.Model):
     def metrics(self):
         return [loss_tracker, mae_metric]
 
-def binary_crossentropy(y_true, y_pred, mask=None):
+def weighted_binary_crossentropy(y_true, y_pred, mask=None):
     output = tf.convert_to_tensor(y_pred)
     target = tf.convert_to_tensor(y_true, dtype=output.dtype)
-    mask = tf.convert_to_tensor(mask)
 
     epsilon = tf.constant(tf.keras.backend.epsilon(), output.dtype.base_dtype)
 
@@ -52,7 +51,10 @@ def binary_crossentropy(y_true, y_pred, mask=None):
 
     bce = target * tf.math.log(output + epsilon)
     bce += (1 - target) * tf.math.log(1 - output + epsilon)
-    bce = tf.boolean_mask(bce, mask)
+    
+    if mask is not None:
+        mask = tf.convert_to_tensor(mask)
+        bce = tf.boolean_mask(bce, mask)
 
     return -tf.keras.backend.mean(bce)
 
@@ -101,11 +103,12 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
     conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
 
     #model = Model(inputs = inputs, outputs = conv10)
+    #opt = keras.optimizers.Adam(lr = 1e-4)
+    #model.compile(optimizer = opt, loss='binary_crossentropy', metrics = ['accuracy'])
     model = UnetModel(inputs = inputs, outputs = conv10)
-
     opt = keras.optimizers.Adam(lr = 1e-4)
     model.compile(optimizer = opt)
-    
+
     #model.summary()
 
     if(pretrained_weights):
@@ -174,7 +177,6 @@ def unet_valid(pretrained_weights = None,input_size = (256,256,1)):
 
     opt = keras.optimizers.Adam(lr = 1e-4)
     model.compile(optimizer = opt, loss = 'binary_crossentropy', metrics = ['accuracy'])
-    print(conv10.shape)
     #model.summary()
 
     if(pretrained_weights):

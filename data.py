@@ -54,9 +54,9 @@ def trainGenerator(batch_size,train_path,image_folder,mask_folder,aug_dict,image
     use the same seed for image_datagen and mask_datagen to ensure the transformation for image and mask is the same
     if you want to visualize the results of generator, set save_to_dir = "your path"
     '''
-#    image_datagen = ImageDataGenerator(**aug_dict)
-#    mask_datagen = ImageDataGenerator(**aug_dict)
-    image_datagen = ImageDataGenerator()
+    image_datagen = ImageDataGenerator(**aug_dict)
+    label_datagen = ImageDataGenerator(**aug_dict)
+    mask_datagen = ImageDataGenerator(**aug_dict)
     image_generator = image_datagen.flow_from_directory(
         train_path,
         classes = ['image'],
@@ -67,7 +67,6 @@ def trainGenerator(batch_size,train_path,image_folder,mask_folder,aug_dict,image
         save_to_dir = save_to_dir,
         save_prefix  = image_save_prefix,
         seed = seed)
-    label_datagen = ImageDataGenerator()
     label_generator = label_datagen.flow_from_directory(
         train_path,
         classes = ['label'],
@@ -78,7 +77,6 @@ def trainGenerator(batch_size,train_path,image_folder,mask_folder,aug_dict,image
         save_to_dir = save_to_dir,
         save_prefix  = mask_save_prefix,
         seed = seed)
-    mask_datagen = ImageDataGenerator()
     mask_generator = mask_datagen.flow_from_directory(
         train_path,
         classes = ['mask'],
@@ -91,7 +89,13 @@ def trainGenerator(batch_size,train_path,image_folder,mask_folder,aug_dict,image
         seed = seed)
     train_generator = zip(image_generator, label_generator, mask_generator)
     for (img,label,mask) in train_generator:
-#        img,mask = adjustData(img,mask,flag_multi_class,num_class)
+        #img,label = adjustData(img,label,flag_multi_class,num_class)
+        img = img / 255
+        label = label / 255
+        label[label > 0.5] = 1
+        label[label <= 0.5] = 0
+        mask = mask / 255
+        mask = mask > 0.5
         yield (img,label,mask)
 
 
