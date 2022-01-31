@@ -1,3 +1,5 @@
+# Updated version [here](https://github.com/xkstein/ManualAlign)
+
 # Controls
 | Input | Command |
 | ----- | ------- | 
