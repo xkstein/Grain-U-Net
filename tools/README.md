@@ -2,7 +2,7 @@
 
 ## Contents
 + Alignment
-  > This one is for aligning images with selected points. Beware its pretty slow, instructions are included at top of page.
+  > This one is for aligning images with selected points. More recently separated into different repo [here](https://github.com/xkstein/ManualAlign)
 + Autocrop
   > This is mean to crop aligned images into a set of overlapping image pairs and then there is another script that can recompile them. The idea was that we would try running the unet on a bunch of littler images an stitch them together in the end. Ultimately, this hasn't shown to improve results, actually just creating artifacts. Still handy for breaking down aligned images though.
 
