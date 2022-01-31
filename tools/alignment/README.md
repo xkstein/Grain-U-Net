@@ -1,4 +1,5 @@
-# Updated version [here](https://github.com/xkstein/ManualAlign)
+# Updated version [here](https://github.com/xkstein/ManualAlign) (this is what I'll be maintaining, if I maintain either)
+Sorry, I know it's weird to have like two different versions. This balooned into substantially more than I had initially thought, so I think it deserves its own little repo.
 
 # Controls
 | Input | Command |
