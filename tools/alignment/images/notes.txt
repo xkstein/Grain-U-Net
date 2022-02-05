@@ -1,7 +1,0 @@
-NOTES:
-
-10HR_Al_100nm_2127_F9_1_8bit.tif could not be aligned because it was too far off the others.
-
-In 10hr: 2127, 2136, 2426, 2429 all need to be re-cropped (over-crop to include all the traced grains, I guess we'll resize down to 4096x4096 later)
-
-10hr2153: Cropped to exclude edge grains because some overlapped with the border of the image
