@@ -20,7 +20,7 @@ def count_grains(img=None, thresh=200, close_width=8, verbose=False):
     return n_grains 
 
 if __name__ == "__main__":
-    input_path = 'images/1-2hr_trace'
+    input_path = 'images/10hr_trace'
     
     img_names = np.sort(os.listdir(input_path))
     valid = np.core.defchararray.find(img_names, '.png')

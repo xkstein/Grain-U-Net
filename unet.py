@@ -12,52 +12,6 @@ from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 import tensorflow as tf
 import pdb
 
-loss_tracker = tf.keras.metrics.Mean(name="loss")
-mae_metric = tf.keras.metrics.MeanAbsoluteError(name="mae")
-
-class UnetModel(keras.Model):
-    def train_step(self, data):
-        x = data[0]
-        y_true = data[1]
-        y_mask = data[2]
-
-        with tf.GradientTape() as tape:
-            y_pred = self(data[0], training=True)  # Forward pass
-            # Compute the loss value
-            loss = weighted_binary_crossentropy(y_true, y_pred, y_mask)
-
-        # Compute gradients
-        trainable_vars = self.trainable_variables
-        gradients = tape.gradient(loss, trainable_vars)
-        # Update weights
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        # Update metrics (includes the metric that tracks the loss)
-        # Compute our own metrics
-        loss_tracker.update_state(loss)
-        mae_metric.update_state(y_true, y_pred)
-        return {"loss": loss_tracker.result(), "mae": mae_metric.result()}
-
-    @property
-    def metrics(self):
-        return [loss_tracker, mae_metric]
-
-def weighted_binary_crossentropy(y_true, y_pred, mask=None):
-    output = tf.convert_to_tensor(y_pred)
-    target = tf.convert_to_tensor(y_true, dtype=output.dtype)
-
-    epsilon = tf.constant(tf.keras.backend.epsilon(), output.dtype.base_dtype)
-
-    output = tf.clip_by_value(output, epsilon, 1 - epsilon)
-
-    bce = target * tf.math.log(output + epsilon)
-    bce += (1 - target) * tf.math.log(1 - output + epsilon)
-    
-    if mask is not None:
-        mask = tf.convert_to_tensor(mask)
-        bce = tf.boolean_mask(bce, mask)
-
-    return -tf.keras.backend.mean(bce)
-
 def unet(pretrained_weights = None,input_size = (256,256,1)):
     inputs = Input(input_size)
     conv1 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(inputs)
@@ -102,12 +56,10 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
     conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
     conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
 
-    #model = Model(inputs = inputs, outputs = conv10)
-    #opt = keras.optimizers.Adam(lr = 1e-4)
-    #model.compile(optimizer = opt, loss='binary_crossentropy', metrics = ['accuracy'])
-    model = UnetModel(inputs = inputs, outputs = conv10)
+    model = Model(inputs = inputs, outputs = conv10)
+
     opt = keras.optimizers.Adam(lr = 1e-4)
-    model.compile(optimizer = opt)
+    model.compile(optimizer = opt, loss='binary_crossentropy', metrics = ['accuracy'])
 
     #model.summary()
 
