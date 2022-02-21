@@ -1,0 +1,21 @@
+*Ran Images at Different Resolutions*
+
+So I took the image that Javier and Silvia were working with last week and I ran them at a variety of resolutions, and these were the results: [insert images]. 
+
+These look pretty good to me, there are some issues [highlight issues] with the grain detection, but the confident errors occur in really difficult areas. Hopefully tilt compiling could aid this. To me, these are visually on par with the predictions generated with the sliced images. However, in the past, the predicted tracings that were generated whole did worse with our metrics despite looking better visually (something which Javier's grain size distribution seemed to confirm). Ultimately, it seems like they're both viable options
+
+
+
+*Made Script to Find Optimal Resolution*
+
+We have been aware of the importance of resolution on the results of a convolution based algorithm for nearly a year now, so I tried to find a way to quantitatively determine what resolution is optimal for a given image. I'm starting off by finding the average number of pixels per grain in an image, and the average ideal radius (in pixels) of a grain in an image. What I mean by the "ideal radius" of a grain is the radius of a circle with that number of pixels. So [ideal radius] = sqrt([number of pixels in a grain])/pi. This just gave me a much more human readable number and I also think that the number of convolutional steps required to cross a grain might be important (like how the number of convolutional steps required to cross a grain boundary might be important). 
+
+Anways, I ran this script on all of our current training data (train_nouveaux) at (256,256) and found that the average pixels per grain was 2573 and the average ideal radius was 25.2 (with a standard deviation of 9.86, which is pretty big and definitely brings into question the efficacy of this whole thing, but whatever).
+
+From this, I extrapolated (basically with guess and check) that the ideal resolution for the image I worked on earlier was (720x720), and I think it looks pretty good (slightly better than either (512x512) or (768x768)) [insert 720x720 image]
+
+
+
+*Did Some Image Compilation Stuff*
+
+I wanted to try a different image for the image compilation (as I think this one might be included in our training data), so I took some new images from the 4 and 10 hour image sets. Since I saw improvements in the results by finding the optimal resolution of the last image, I decided to do the same for these. With my script, I found that the optimal resolution for these images was (528x528). [insert some examples of the images found]
