@@ -114,7 +114,7 @@ if __name__=='__main__':
     from skimage import io
 
     img_in = io.imread('images/0.png')
-    img_in = img_in - 64
+    img_in = img_in
     # img_in = io.imread('images/cat.png')
     # img_in = np.int32((255/np.max(img_in)) * img_in)
     thresh = automatic_threshold(img_in)

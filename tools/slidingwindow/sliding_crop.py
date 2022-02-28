@@ -12,6 +12,7 @@ import sys
 from skimage import io
 from src.crop import crop
 from src.generate_coords import generate_coords
+from time import time
 
 IMG_PATH = 'img/01.png'
 SLICES = 2

@@ -2,3 +2,4 @@ examples/
 .DS_Store
 tilt_compile_visual/
 count/images/
+thresh/
