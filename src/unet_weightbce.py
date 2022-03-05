@@ -1,3 +1,11 @@
+'''
+U-Net Weighted BCE
+
+This is an implementation of U-Net which masks out edge grains. Requires 3 images, image, label, mask
+Also never adopted because it didn't show substantially superior results
+
+Author: Jamie, jamie.k.eckstein@gmail.com
+'''
 import numpy as np 
 import os
 import skimage.io as io
@@ -5,10 +13,8 @@ import skimage.transform as trans
 import numpy as np
 from keras.models import *
 from keras.layers import *
-# from keras.optimizers import *
 from tensorflow import keras
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-#from keras import backend as keras
 import tensorflow as tf
 import pdb
 

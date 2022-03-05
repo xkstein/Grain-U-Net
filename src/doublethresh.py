@@ -5,10 +5,10 @@ def double_thresh(conservative, liberal):
     '''
     Double Threshold
 
-    This code takes two images of a grain boundary, one which only includes high 
+    This code takes two images of a grain boundary, one which only includes high
     certainty grain boundaries (called conservative) and another which includes more
     boundaries with lower certainty (called liberal). It combines them by adding to
-    the conservative image boundaries in the liberal image which overlap with the 
+    the conservative image boundaries in the liberal image which overlap with the
     conservative image
     '''
     output = conservative

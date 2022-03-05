@@ -13,13 +13,15 @@ data_gen_args = dict(rotation_range=0.2,
                     horizontal_flip=True,
                     fill_mode='nearest')
 '''
-data_gen_args = None
-
-myGene = trainGenerator(10,'data/train','image','label',data_gen_args,save_to_dir = None)
+#data_gen_args = None
+#
+#myGene = trainGenerator(10,'data/train','image','label',data_gen_args,save_to_dir = None)
+#
+#model = unet()
+#model_checkpoint = ModelCheckpoint('unet_membrane.hdf5', monitor='loss',verbose=1, save_best_only=False)
+#model.fit(myGene, steps_per_epoch=30, epochs=1, callbacks=[model_checkpoint])
 
 model = unet()
-model_checkpoint = ModelCheckpoint('unet_membrane.hdf5', monitor='loss',verbose=1, save_best_only=False)
-model.fit(myGene, steps_per_epoch=30, epochs=1, callbacks=[model_checkpoint])
 
 testGene = testGenerator("data/membrane/test")
 results = model.predict_generator(testGene,30,verbose=1)

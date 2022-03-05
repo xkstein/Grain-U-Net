@@ -1,16 +1,19 @@
-# This is a little set of functions to calculate the mean IOU per-grain (just
-# called IOU in the unet paper). 
-#
-# Usage: To use the algorithm outlined in the paper, use find_iou()
-#
-# Source: http://celltrackingchallenge.net/evaluation-methodology/ (under SEG)
-# Author: jamie.k.eckstein@gmail.com
+'''
+IOU Test
+
+This is a little set of functions to calculate the mean IOU per-grain (just
+called IOU in the unet paper). 
+
+Usage: To use the algorithm outlined in the paper, use find_iou()
+
+Source: http://celltrackingchallenge.net/evaluation-methodology/ (under SEG)
+Author: jamie.k.eckstein@gmail.com
+'''
 
 from skimage import io, measure, morphology
 import os
 import numpy as np
 import time
-
 def show_imgs(img1, img2, overlap=False, wait=True):
     if overlap:
         img = np.zeros((img1.shape + (3,)))
