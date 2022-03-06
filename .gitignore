@@ -8,3 +8,4 @@ __pycache__
 **/scratch/**
 **/tilt_compile/**
 tools/thresh/*
+venv/
