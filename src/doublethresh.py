@@ -11,7 +11,7 @@ def double_thresh(conservative, liberal):
     the conservative image boundaries in the liberal image which overlap with the
     conservative image
     '''
-    output = conservative
+    output = np.copy(conservative)
 
     lib_lab = measure.label(liberal)
     overlap = np.unique(lib_lab[conservative])
