@@ -1,4 +1,3 @@
-GitTools.ipynb
 **/train/**
 __pycache__
 .ipynb_checkpoints
@@ -9,6 +8,7 @@ __pycache__
 **/tilt_compile/**
 tools/thresh/*
 venv/
-scripts/Double\ Thresholding\ Broad\ Applicaiton.ipynb
-scripts/Find\ Optimal\ Resolution.ipynb
+
+scripts/DoubleThresholdingTest.ipynb
+scripts/GitTools.ipynb
 scripts/double_threshold_test.py
