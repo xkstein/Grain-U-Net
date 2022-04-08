@@ -13,3 +13,5 @@ venv/
 scripts/DoubleThresholdingTest.ipynb
 scripts/GitTools.ipynb
 scripts/double_threshold_test.py
+scripts/PreAugmentTest.ipynb
+scripts/run_analysis.py
