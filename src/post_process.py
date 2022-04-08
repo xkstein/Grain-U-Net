@@ -12,10 +12,10 @@ from skimage import morphology
 from plantcv import plantcv as pcv
 import numpy as np
 try:
-    from utils import compile_imgs, double_thresh
+    from src.utils import compile_imgs, double_thresh
 except ModuleNotFoundError:
     print('utils mod not found')
-    from src.utils import compile_imgs, double_thresh
+    from src.utils.post_processing_utils import compile_imgs, double_thresh
 
 def post_process(imgs, n_dilations=3, min_area=100, prune_size=30, debug=False,\
         save_to_dir=None, out_dict=False, **kwargs):
