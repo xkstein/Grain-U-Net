@@ -5,6 +5,8 @@ Simply perform:
 
 err = randerr(first,second)
 where first and second are just the images in question.
+
+Author: Javier
 '''
 
 from skimage import data, io, filters, morphology

@@ -1,5 +1,4 @@
-'''
-IOU Test
+'''IOU Test
 
 This is a little set of functions to calculate the mean IOU per-grain (just
 called IOU in the unet paper). 
