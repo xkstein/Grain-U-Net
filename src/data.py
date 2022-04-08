@@ -46,9 +46,9 @@ def adjustData(img,mask,flag_multi_class,num_class):
 
 
 
-def trainGenerator(batch_size,train_path,image_folder,aug_dict,image_color_mode = "grayscale",
+def trainGenerator(batch_size,train_path,image_folder,label_folder,aug_dict,image_color_mode = "grayscale",
     mask_color_mode = "grayscale",image_save_prefix  = "image",mask_save_prefix  = "mask",
-    flag_multi_class = False,num_class = 2,save_to_dir = None,target_size = (256,256),seed = 1,mask_folder=None,):
+    flag_multi_class = False,num_class = 2,save_to_dir = None,target_size = (256,256),seed = 1,mask_folder=None):
     '''
     can generate image and mask at the same time
     use the same seed for image_datagen and mask_datagen to ensure the transformation for image and mask is the same
@@ -76,36 +76,12 @@ def trainGenerator(batch_size,train_path,image_folder,aug_dict,image_color_mode 
         save_to_dir = save_to_dir,
         save_prefix  = mask_save_prefix,
         seed = seed)
-    if mask is not None:
-        mask_datagen = ImageDataGenerator(**aug_dict)
-        mask_generator = mask_datagen.flow_from_directory(
-            train_path,
-            classes = ['mask'],
-            class_mode = None,
-            color_mode = "grayscale",
-            target_size = target_size,
-            batch_size = batch_size,
-            save_to_dir = save_to_dir,
-            save_prefix  = mask_save_prefix,
-            seed = seed)
-        train_generator = zip(image_generator, label_generator, mask_generator)
-        for (img,label,mask) in train_generator:
-            #img,label = adjustData(img,label,flag_multi_class,num_class)
-            img = img / 255
-            label = label / 255
-            label[label > 0.5] = 1
-            label[label <= 0.5] = 0
-            mask = mask / 255
-            mask = mask > 0.5
-            yield (img,label,mask)
-    else:
-        train_generator = zip(image_generator, label_generator)
-        for (img,label) in train_generator:
-            img = img / 255
-            label = label / 255
-            label[label > 0.5] = 1
-            label[label <= 0.5] = 0
-            yield (img,label)
+    for (img,label) in zip(image_generator, label_generator):
+        img = img / 255
+        label = label / 255
+        label[label > 0.5] = 1
+        label[label <= 0.5] = 0
+        yield (img,label)
 
 
 def testGenerator(test_path,num_image = 30,target_size = (256, 256),flag_multi_class = False,as_gray = True):

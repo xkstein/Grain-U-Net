@@ -49,7 +49,7 @@ def pixels_per_grain(trace, dims = None, thresh=0.6):
     return (n_grains, avg_grain_size, avg_radius, std_radius)
 
 if __name__ == "__main__":
-    INPUT_PATH = 'data/train_nouveaux_256/label'
+    INPUT_PATH = 'data/train_preaug/label'
     #INPUT_PATH = 'images/trace'
 
     img_names = np.sort(os.listdir(INPUT_PATH))

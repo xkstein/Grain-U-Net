@@ -1,5 +1,5 @@
-def sub_plot(ax, im, cmap="gray", title=None):
+def sub_plot(ax, im, cmap="gray", title=None, title_color='k'):
     ax.imshow(im, cmap=cmap)
     ax.axis("off")
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, color=title_color)
