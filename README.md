@@ -6,3 +6,5 @@ Please let me know how you want to set up data sharing. Maybe each time we expan
 Original implementation: https://github.com/zhixuhao/unet
 
 My current setup is to run this in a python virtual machine and install src as a package. To do the latter (which is required to access the files in src from `scripts/`), run `pip3 install -e .` in the main directory. This might be an overcomplication, but I'm trying it out for organization.
+
+Also, I'm adding docstrings to most of the functions. You can just read them in the file, but you can also see them by importing the function or module and then running `help(<function or module name>)` in python.
