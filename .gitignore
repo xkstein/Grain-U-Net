@@ -10,6 +10,8 @@ __pycache__
 tools/thresh/*
 venv/
 
+src.egg-info/
+
 scripts/DoubleThresholdingTest.ipynb
 scripts/GitTools.ipynb
 scripts/double_threshold_test.py
