@@ -1,6 +1,11 @@
-# This function is supposed to find the translational best match of two images
-# by minimizing chi2 values (dist squared)
-# Based on 1998 Carpenter, Rickman, Barmak Section IV.B.5
+'''Chi2
+
+This is supposed to find the translational best match of two images by minimizing
+chi2 values (dist squared)
+
+Based on 1998 Carpenter, Rickman, Barmak Section IV.B.5
+Author: Jamie (jamie.k.eckstein@gmail.com)
+'''
 import numpy as np
 import pdb
 
@@ -104,3 +109,21 @@ def chi2_align(A, B, offset_range = [50, -50, 50, -50], offset_n=13):
         else:
             offset_x += x[0] - 1
             offset_y += y[0] - 1
+
+if __name__ == '__main__':
+    img = io.imread('../../data/test/5_processed.png')
+    img2 = np.zeros((img.shape[0] + 25, img.shape[1] + 25))
+    img2[25:, 25:] = img
+
+    results = chi2_align(img, img2)
+
+    print(results)
+
+    offset_x = int(results["x"][0])
+    offset_y = int(results["y"][0])
+    fusionimg = np.zeros((img2.shape[0], img2.shape[1], 3))
+    fusionimg[offset_x:, offset_y:, 0] = img
+    fusionimg[:, :, 1] = img2
+
+    io.imshow(fusionimg)
+    io.show()

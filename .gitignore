@@ -1,7 +1,7 @@
-GitTools.ipynb
 **/train/**
 __pycache__
 .ipynb_checkpoints
+.pylintrc
 *.hdf5
 **/data/**
 .DS_Store
@@ -9,3 +9,11 @@ __pycache__
 **/tilt_compile/**
 tools/thresh/*
 venv/
+
+src.egg-info/
+
+scripts/DoubleThresholdingTest.ipynb
+scripts/GitTools.ipynb
+scripts/double_threshold_test.py
+scripts/PreAugmentTest.ipynb
+scripts/run_analysis.py

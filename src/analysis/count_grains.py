@@ -1,4 +1,5 @@
 """Count
+
 An implementation of the masking code which counts grains in traced grain images
 """
 import os
