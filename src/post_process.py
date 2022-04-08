@@ -11,9 +11,14 @@ kwargs:
 from skimage import morphology
 from plantcv import plantcv as pcv
 import numpy as np
-from utils import compile_imgs, double_thresh
+try:
+    from utils import compile_imgs, double_thresh
+except ModuleNotFoundError:
+    print('utils mod not found')
+    from src.utils import compile_imgs, double_thresh
 
-def post_process(imgs, n_dilations=3, min_area=100, prune_size=30, debug=False, **kwargs):
+def post_process(imgs, n_dilations=3, min_area=100, prune_size=30, debug=False,\
+        save_to_dir=None, out_dict=False, **kwargs):
     '''This tries to make clean skeletons with N Unet output image(s) from an FOV
     '''
     if len(imgs.shape) > 2:
@@ -31,20 +36,14 @@ def post_process(imgs, n_dilations=3, min_area=100, prune_size=30, debug=False, 
     skeleton = morphology.skeletonize(img_closed)
     pruned_skeleton, _, _ = pcv.morphology.prune(skeleton.astype('uint8'), prune_size)
 
-    if debug:
-        from matplotlib import pyplot as plt
-        from visual_tools import sub_plot
-        fig, axes = plt.subplots(ncols=6, figsize=(12,2))
-
-        sub_plot(axes[0], img_compiled, title='Compiled')
-        sub_plot(axes[1], img_double_thresh, title='Double Threshold')
-        sub_plot(axes[2], img_dilated, title='dilated')
-        sub_plot(axes[3], img_closed, title='Fill')
-        sub_plot(axes[4], skeleton, title='Skeleton')
-        sub_plot(axes[5], pruned_skeleton, title='Pruned Skel')
-        plt.tight_layout()
-        plt.show()
-        plt.close(fig)
+    if out_dict:
+        return {'compiled': img_compiled,
+                'double_thresh': img_double_thresh,
+                'dilated': img_dilated,
+                'closed': img_closed,
+                'skeleton': skeleton,
+                'pruned_skeleton': pruned_skeleton
+                }
 
     return pruned_skeleton
 
