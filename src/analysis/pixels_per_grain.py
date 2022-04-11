@@ -16,7 +16,7 @@ def pixels_per_grain(trace, dims = None, thresh=0.6):
     """
     if dims is not None:
         if trace.shape[0] / dims[0] > 1:
-            trace = morphology.binary_erosion(trace, morphology.square(trace.shape[0] // dims[0]))
+            trace = morphology.binary_erosion(trace, morphology.square(trace.shape[0] // dims[0] + 1))
         trace = transform.resize(trace, dims, preserve_range = True)
 
     #trace_thresh = (trace.astype('float') > thresh).astype('float')

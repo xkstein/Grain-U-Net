@@ -17,6 +17,7 @@ except ModuleNotFoundError:
     print('utils mod not found')
     from src.utils.post_processing_utils import compile_imgs, double_thresh
 
+# Test inline comment
 def post_process(imgs, n_dilations=3, min_area=100, prune_size=30, debug=False,\
         save_to_dir=None, out_dict=False, **kwargs):
     '''This tries to make clean skeletons with N Unet output image(s) from an FOV
