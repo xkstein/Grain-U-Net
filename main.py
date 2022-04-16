@@ -1,5 +1,4 @@
-from Model import *
-from data import *
+from src.unet import unet_test
 from pdb import set_trace
 
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -21,8 +20,10 @@ data_gen_args = dict(rotation_range=0.2,
 #model_checkpoint = ModelCheckpoint('unet_membrane.hdf5', monitor='loss',verbose=1, save_best_only=False)
 #model.fit(myGene, steps_per_epoch=30, epochs=1, callbacks=[model_checkpoint])
 
-model = unet()
+model = unet_test()
 
-testGene = testGenerator("data/membrane/test")
-results = model.predict_generator(testGene,30,verbose=1)
-saveResult("data/membrane/test",results)
+model.summary()
+
+#testGene = testGenerator("data/membrane/test")
+#results = model.predict_generator(testGene,30,verbose=1)
+#saveResult("data/membrane/test",results)

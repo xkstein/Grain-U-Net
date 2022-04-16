@@ -1,10 +1,10 @@
-**/train/**
+*.hdf5
+*.swp
+.DS_Store
 __pycache__
 .ipynb_checkpoints
 .pylintrc
-*.hdf5
 **/data/**
-.DS_Store
 **/scratch/**
 **/tilt_compile/**
 tools/thresh/*
@@ -17,3 +17,4 @@ scripts/GitTools.ipynb
 scripts/double_threshold_test.py
 scripts/PreAugmentTest.ipynb
 scripts/run_analysis.py
+src/grain_sequence_mask.py
