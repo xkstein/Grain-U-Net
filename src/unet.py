@@ -4,7 +4,8 @@ from numpy.lib.function_base import append
 import skimage.io as io
 import skimage.transform as trans
 import numpy as np
-from keras.models import * from keras.layers import *
+from keras.models import *
+from keras.layers import *
 # from keras.optimizers import *
 from tensorflow import keras
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
