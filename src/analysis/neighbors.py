@@ -31,8 +31,11 @@ def find_neighbors(img, invert=False, dilation_radius=5):
 
     grains = np.unique(label)
     grains = grains[grains != 0]
+    
+    pred_ext_grains = morphology.dilation(label)
 
     grain_neighbors = {}
+    predicted_neighbors = {}
     for ind in grains:
         mask = np.zeros(label.shape)
         mask[label == ind] = 1

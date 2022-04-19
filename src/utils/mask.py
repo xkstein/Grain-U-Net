@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pdb
 
-def find_mask(img=None, thresh=200, close_width=8, verbose=False):
+def make_mask(img=None, thresh=200, close_width=8, verbose=False):
     if img.all() == None:
         print('Using my image')
         img = io.imread("data/test/key/0.png")
