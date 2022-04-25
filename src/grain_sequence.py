@@ -10,9 +10,7 @@ Parameters:
     input_img_paths - List of paths for training images
     label_img_paths - List of paths of label images
                       (in the same order as input_img_paths)
-    vertical_flip   - If False, doesn't do random vertical flips augmentation
-    horizontal_flip - If False, doesn't do random horizaontal flips
-    rotate_90       - If False, doesn't do random 90 degree rotations
+    enable_augment  - If False, doesn't do random data augmentation
 
 Author: Jamie (jamie.k.eckstein@gmail.com)
 Credit: fchollet
@@ -24,15 +22,11 @@ import numpy as np
 
 class GrainSequence(keras.utils.Sequence):
     '''Helper to iterate over the data (as Numpy arrays).'''
-    def __init__(self, batch_size, img_size, input_img_paths, label_img_paths,
-                vertical_flip=True, horizontal_flip=True, rotate_90=True):
+    def __init__(self, batch_size, img_size, input_img_paths, label_img_paths):
         self.batch_size = batch_size
         self.img_size = img_size
         self.input_img_paths = input_img_paths
         self.label_img_paths = label_img_paths
-        self.vertical_flip = vertical_flip
-        self.horizontal_flip = horizontal_flip
-        self.rotate_90 = rotate_90
 
     def __len__(self):
         return len(self.label_img_paths) // self.batch_size
@@ -48,8 +42,7 @@ class GrainSequence(keras.utils.Sequence):
             img = io.imread(path)
             if len(img.shape) > 2:
                 img = img[:,:,0]
-            if img.shape != self.img_size:
-                raise Exception(f"Training images must be downscaled to {self.image_size} manually")
+            assert img.shape == self.img_size, f"Training images must be downscaled to {self.img_size} manually"
 
             img = img - img.min()
             img = img.astype('float32') / np.ptp(img)
@@ -60,12 +53,11 @@ class GrainSequence(keras.utils.Sequence):
             img = io.imread(path)
             if len(img.shape) > 2:
                 img = img[:,:,0]
-            if img.shape != self.img_size:
-                raise Exception(f"Training images must be downscaled to {self.image_size} manually")
+            assert img.shape == self.img_size, f"Training images must be downscaled to {self.img_size} manually"
 
             img = img / 255
             label_imgs[j] = np.expand_dims(img, 2)
-
+        
         for j in range(self.batch_size):
             input_imgs[j], label_imgs[j] = self.augment(input_imgs[j], label_imgs[j])
 
@@ -73,13 +65,13 @@ class GrainSequence(keras.utils.Sequence):
 
     def augment(self, image, label):
         '''Augments the input images'''
-        if self.vertical_flip and random.choice([True, False]):
+        if random.choice([True, False]):
             image = np.flipud(image)
             label = np.flipud(label)
-        if self.horizontal_flip and random.choice([True, False]):
+        if random.choice([True, False]):
             image = np.fliplr(image)
             label = np.fliplr(label)
-        if self.rotate_90 and random.choice([True, False]):
+        if random.choice([True, False]):
             image = np.rot90(image)
             label = np.rot90(label)
         return image, label

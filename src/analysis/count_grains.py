@@ -6,13 +6,16 @@ import os
 from skimage import io, measure, morphology
 import numpy as np
 
-def count_grains(img, thresh=200):
+def count_grains(img, thresh=200, invert=False):
     """Count Grains
     Counts how many grains are in the input image
     """
+    if invert:
+        img = np.max(img) - img
+
     img_thresh = img > thresh
 
-    img_label = measure.label(img_thresh, background=0)
+    img_label = measure.label(img_thresh, connectivity=1, background=0)
     img_label = morphology.remove_small_objects(img_label, min_size=128)
     bound = np.concatenate((img_label[0,:], img_label[-1,:],
                             img_label[:,0], img_label[:,-1]))

@@ -36,6 +36,8 @@ def find_jaccard(pred, test):
 
 
 def find_iou(pred, ref, verbose=False, ret_arr=False):
+    assert pred.shape == ref.shape, 'Requires the prediction and the reference images to be the same size'
+
     pred_blob = measure.label(pred, background=0, connectivity=1)
     ref_blob = measure.label(ref, background=0, connectivity=1)
     jaccard = np.zeros(np.max(ref_blob))
@@ -43,7 +45,7 @@ def find_iou(pred, ref, verbose=False, ret_arr=False):
         ref_obj = (ref_blob == i)
         
         pred_ref_mask = np.zeros(ref_blob.shape)
-        pred_ref_mask[(ref_obj == 1)] = (pred_blob)[(ref_obj == 1)]
+        pred_ref_mask[(ref_obj == 1)] = pred_blob[(ref_obj == 1)]
 
         pred_labels = np.unique(pred_ref_mask)
         pred_labels = pred_labels[pred_labels != 0]
