@@ -18,7 +18,6 @@ scripts/double_threshold_test.py
 scripts/PreAugmentTest.ipynb
 scripts/run_analysis.py
 scripts/FindAvgGrains.ipynb
-scripts/check_training.py
 src/grain_sequence_mask.py
 
 src/utils/dilate_resize.py
