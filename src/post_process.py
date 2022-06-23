@@ -28,6 +28,7 @@ def post_process(imgs, n_dilations=3, min_grain_area=100, prune_size=30, debug=F
     else:
         img_compiled = imgs
 
+
     img_double_thresh = double_thresh(img_compiled, **kwargs)
 
     img_dilated = np.copy(img_double_thresh)

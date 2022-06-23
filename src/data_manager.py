@@ -3,6 +3,7 @@ Data handling helper functions
 '''
 from skimage import io, transform
 import numpy as np
+import cv2 as cv
 
 def image_generator(test_paths, target_size=(256,256)):
     '''Generator which yields normalized images from list of paths
@@ -18,4 +19,5 @@ def image_generator(test_paths, target_size=(256,256)):
         img -= img.min()
         img = img.astype('float32') / np.ptp(img)
         img = np.expand_dims(img, 0)
+
         yield img

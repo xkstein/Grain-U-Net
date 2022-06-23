@@ -1,6 +1,3 @@
-'''
-Modified UNet used to tune hyperparameters. Changed unet.py code, original by Jamie Eckstien
-'''
 import numpy as np 
 import os
 from numpy.lib.function_base import append
@@ -9,14 +6,23 @@ import skimage.transform as trans
 import numpy as np
 from keras.models import *
 from keras.layers import *
-from keras.optimizers import *
+from keras import backend as K
+# from keras.optimizers import *
 from tensorflow import keras
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 #from keras import backend as keras
 import tensorflow as tf
 import pdb
 
-def get_unet_hyper(pretrained_weights = None,input_size = (256,256,1), dropout_rate = 0.5):
+def dice_loss(y_true, y_pred):
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.math.sigmoid(y_pred)
+    num = 2* tf.reduce_sum(y_true*y_pred) + 1
+    denom = tf.reduce_sum(y_true + y_pred) + 1
+
+    return 1 - num/denom
+
+def get_unet_dice(pretrained_weights = None,input_size = (256,256,1)):
     inputs = Input(input_size)
 
     conv1 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(inputs)
@@ -31,12 +37,12 @@ def get_unet_hyper(pretrained_weights = None,input_size = (256,256,1), dropout_r
     conv4 = Conv2D(512, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(pool3)
     conv4 = Conv2D(512, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv4)
 
-    drop4 = Dropout(dropout_rate)(conv4)
+    drop4 = Dropout(0.3)(conv4)
     pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
 
     conv5 = Conv2D(1024, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(pool4)
     conv5 = Conv2D(1024, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv5)
-    drop5 = Dropout(dropout_rate)(conv5)
+    drop5 = Dropout(0.3)(conv5)
 
     up6 = Conv2D(512, 2, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(UpSampling2D(size = (2,2))(drop5))
     merge6 = concatenate([drop4,up6], axis = 3)
@@ -63,9 +69,14 @@ def get_unet_hyper(pretrained_weights = None,input_size = (256,256,1), dropout_r
 
     model = Model(inputs = inputs, outputs = conv10)
 
+    opt = keras.optimizers.Adam(learning_rate = 3.5e-4)
+
+    model.compile(optimizer = opt, loss=dice_loss, metrics = ['accuracy'])
+
     #model.summary()
 
     if(pretrained_weights):
     	model.load_weights(pretrained_weights)
 
     return model
+

@@ -79,4 +79,3 @@ class GrainSequence(keras.utils.Sequence):
             image = np.rot90(image)
             label = np.rot90(label)
         return image, label
-
