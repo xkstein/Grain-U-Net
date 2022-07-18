@@ -9,6 +9,8 @@ __pycache__
 **/tilt_compile/**
 tools/thresh/*
 venv/
+hdf5_dump
+DnCNN-PyTorch-master
 
 src.egg-info/
 
