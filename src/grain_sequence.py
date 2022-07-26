@@ -21,7 +21,7 @@ Credit: fchollet
 
 import random
 from tensorflow import keras
-from skimage import io
+from skimage import io, exposure
 import numpy as np
 
 class GrainSequence(keras.utils.Sequence):
@@ -50,6 +50,9 @@ class GrainSequence(keras.utils.Sequence):
 
             img = img - img.min()
             img = img.astype('float32') / np.ptp(img)
+            '''p2, p98 = np.percentile(img, (2, 98))
+            img = exposure.rescale_intensity(img, in_range=(p2, p98))'''
+
             input_imgs[j] = np.expand_dims(img, 2)
 
         label_imgs = np.zeros((self.batch_size,) + self.img_size + (1,), dtype="uint8")
