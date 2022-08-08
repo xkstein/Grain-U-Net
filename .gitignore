@@ -11,6 +11,7 @@ tools/thresh/*
 venv/
 hdf5_dump
 *.h5
+**/desktop.ini
 
 src.egg-info/
 
