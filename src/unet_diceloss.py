@@ -1,3 +1,8 @@
+'''
+framework for custom loss, in case over or under segmentation just needs small tweaks. Code as is does not work, 
+loss calculations are incorrect. DO NOT USE OUT OF BOX
+'''
+
 import numpy as np 
 import os
 from numpy.lib.function_base import append

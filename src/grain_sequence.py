@@ -50,6 +50,7 @@ class GrainSequence(keras.utils.Sequence):
 
             img = img - img.min()
             img = img.astype('float32') / np.ptp(img)
+            #code for contrast stretching
             '''p2, p98 = np.percentile(img, (2, 98))
             img = exposure.rescale_intensity(img, in_range=(p2, p98))'''
 

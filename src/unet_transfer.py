@@ -1,3 +1,8 @@
+'''
+DEPRECATED: no longer in use 
+'''
+
+
 import numpy as np 
 import os
 from numpy.lib.function_base import append

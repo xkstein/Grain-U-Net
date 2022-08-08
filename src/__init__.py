@@ -3,4 +3,3 @@ from .grain_sequence import GrainSequence
 from .post_process import post_process
 from .data_manager import image_generator
 from .unet_hypersearch import get_unet_hyper
-from .unet_transfer import get_unet_transfer
