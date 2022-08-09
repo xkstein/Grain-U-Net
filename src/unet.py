@@ -13,7 +13,7 @@ from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 import tensorflow as tf
 import pdb
 
-def get_unet(pretrained_weights = None,input_size = (256,256,1)):
+def get_unet(pretrained_weights = None, input_size = (256,256,1)):
     inputs = Input(input_size)
 
     conv1 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(inputs)
@@ -56,11 +56,12 @@ def get_unet(pretrained_weights = None,input_size = (256,256,1)):
     conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge9)
     conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
     conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
-    conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
 
+    conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
     model = Model(inputs = inputs, outputs = conv10)
 
-    opt = keras.optimizers.Adam(lr = 1e-4)
+    opt = keras.optimizers.Adam(learning_rate = 1e-4)
+
     model.compile(optimizer = opt, loss='binary_crossentropy', metrics = ['accuracy'])
 
     #model.summary()
