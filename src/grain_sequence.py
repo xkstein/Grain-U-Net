@@ -31,6 +31,7 @@ class GrainSequence(keras.utils.Sequence):
         self.img_size = img_size
         self.input_img_paths = input_img_paths
         self.label_img_paths = label_img_paths
+        print('what')
 
     def __len__(self):
         return len(self.label_img_paths) // self.batch_size
@@ -41,12 +42,13 @@ class GrainSequence(keras.utils.Sequence):
         batch_input_img_paths = self.input_img_paths[i : i + self.batch_size]
         batch_label_img_paths = self.label_img_paths[i : i + self.batch_size]
 
-        input_imgs = np.zeros((self.batch_size,) + self.img_size + (1,), dtype="float32")
+        input_imgs = np.zeros((self.batch_size,) + self.img_size, dtype="float32")
         for j, path in enumerate(batch_input_img_paths):
             img = io.imread(path)
-            if len(img.shape) > 2:
-                img = img[:,:,0]
             assert img.shape == self.img_size, f"Training images must be downscaled to {self.img_size} manually"
+            if len(img.shape) > 2 and len(self.img_size) < 3:
+                img = img[:,:,0]
+                img = np.expand_dims(img, -1)
 
             img = img - img.min()
             img = img.astype('float32') / np.ptp(img)
@@ -54,17 +56,17 @@ class GrainSequence(keras.utils.Sequence):
             '''p2, p98 = np.percentile(img, (2, 98))
             img = exposure.rescale_intensity(img, in_range=(p2, p98))'''
 
-            input_imgs[j] = np.expand_dims(img, 2)
+            input_imgs[j] = img
 
-        label_imgs = np.zeros((self.batch_size,) + self.img_size + (1,), dtype="uint8")
+        label_imgs = np.zeros((self.batch_size,) + self.img_size[:2] + (1,), dtype="uint8")
         for j, path in enumerate(batch_label_img_paths):
             img = io.imread(path)
+            assert img.shape[:2] == self.img_size[:2], f"Training images must be downscaled to {self.img_size} manually"
             if len(img.shape) > 2:
                 img = img[:,:,0]
-            assert img.shape == self.img_size, f"Training images must be downscaled to {self.img_size} manually"
+                label_imgs[j] = np.expand_dims(img, -1)
 
             img = img / 255
-            label_imgs[j] = np.expand_dims(img, 2)
         
         for j in range(self.batch_size):
             input_imgs[j], label_imgs[j] = self.augment(input_imgs[j], label_imgs[j])
