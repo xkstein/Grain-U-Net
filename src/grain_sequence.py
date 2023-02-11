@@ -20,6 +20,7 @@ Credit: fchollet
 
 
 import random
+from re import I
 from tensorflow import keras
 from skimage import io, exposure
 import numpy as np
@@ -31,7 +32,7 @@ class GrainSequence(keras.utils.Sequence):
         self.img_size = img_size
         self.input_img_paths = input_img_paths
         self.label_img_paths = label_img_paths
-        print('what')
+        print('augmenting with shift axis')
 
     def __len__(self):
         return len(self.label_img_paths) // self.batch_size
@@ -64,9 +65,9 @@ class GrainSequence(keras.utils.Sequence):
             assert img.shape[:2] == self.img_size[:2], f"Training images must be downscaled to {self.img_size} manually"
             if len(img.shape) > 2:
                 img = img[:,:,0]
-                label_imgs[j] = np.expand_dims(img, -1)
 
             img = img / 255
+            label_imgs[j] = np.expand_dims(img, 2)
         
         for j in range(self.batch_size):
             input_imgs[j], label_imgs[j] = self.augment(input_imgs[j], label_imgs[j])
@@ -84,4 +85,9 @@ class GrainSequence(keras.utils.Sequence):
         if random.choice([True, False]):
             image = np.rot90(image)
             label = np.rot90(label)
+        
+        image = np.rollaxis(image, -1)
+        np.random.shuffle(image)
+        image = np.rollaxis(image, 0, 3)
+
         return image, label
